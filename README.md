@@ -12,6 +12,32 @@ Further reading:
 * [About API implemented in this library](http://doc.kaitai.io/stream_api.html)
 * [JavaScript-specific notes](http://doc.kaitai.io/lang_javascript.html)
 
+## Quick start 
+ 
+### Node 
+ 
+Create an empty directory and install the [runtime from npm](https://www.npmjs.com/package/kaitai-struct) by running: 
+ 
+```bash
+npm i kaitai-struct 
+``` 
+ 
+Copy your compiled .ksy parser (eg. `Elf.js`) or download a [parser from the format gallery](http://formats.kaitai.io/) to the directory. 
+ 
+Create `index.js` with the following content: 
+ 
+```javascript 
+const fs = require("fs"); 
+const Elf = require("./Elf"); 
+const KaitaiStream = require('kaitai-struct/KaitaiStream'); 
+ 
+const fileContent = fs.readFileSync("/bin/ls"); 
+const parsedElf = new Elf(new KaitaiStream(fileContent)); 
+console.log(parsedElf); 
+``` 
+ 
+Test the code by running `node index.js`. 
+
 ## Licensing
 
 Copyright 2012-2016 Ilmari Heikkinen
