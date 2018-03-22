@@ -14,7 +14,7 @@ Further reading:
 
 ## Quick start 
  
-### Node 
+### Node.js
  
 Create an empty directory and install the [runtime from npm](https://www.npmjs.com/package/kaitai-struct) by running: 
  
@@ -22,7 +22,7 @@ Create an empty directory and install the [runtime from npm](https://www.npmjs.c
 npm i kaitai-struct 
 ``` 
  
-Copy your compiled .ksy parser (eg. `Elf.js`) or download a [parser from the format gallery](http://formats.kaitai.io/) to the directory. 
+Copy your compiled .ksy parser (eg. `Elf.js`) or download a [parser from the format gallery](http://formats.kaitai.io/) (eg. [Elf.js](http://formats.kaitai.io/elf/javascript.html)) to this directory. 
  
 Create `index.js` with the following content: 
  
