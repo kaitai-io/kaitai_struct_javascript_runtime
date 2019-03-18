@@ -3,6 +3,7 @@
   "version": "0.8.0-SNAPSHOT.11",
   "description": "Kaitai Struct: runtime library for Javascript",
   "main": "index.js",
+  "types": "index.d.ts",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/kaitai-io/kaitai_struct_javascript_runtime.git"
