@@ -189,24 +189,6 @@ declare namespace KaitaiStream {
       static arrayMin(arr: any): any;
       static arrayMax(arr: any): any;
       static byteArrayCompare(a: any, b: any): number;
-      /**
-        Maps a Uint8Array into the KaitaiStream buffer.
-    
-        Nice for quickly reading in data.
-    
-        @param length Number of elements to map.
-        @return Uint8Array to the KaitaiStream backing buffer.
-        */
-      mapUint8Array(length: number): Uint8Array;
-      /**
-        Creates an array from an array of character codes.
-        Uses String.fromCharCode in chunks for memory efficiency and then concatenates
-        the resulting string chunks.
-    
-        @param array Array of character codes.
-        @return String created from the character codes.
-      **/
-      static createStringFromArray(array: Uint8Array): string;
       
       static EOFError: typeof EOFError;
       static UnexpectedDataError: typeof UnexpectedDataError;
