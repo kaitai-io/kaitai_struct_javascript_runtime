@@ -214,15 +214,9 @@ KaitaiStream.prototype.readS4be = function(e) {
  */
 KaitaiStream.prototype.readS8be = function(e) {
   this.ensureBytesLeft(8);
-  var v1 = this.readU4be();
-  var v2 = this.readU4be();
-
-  if ((v1 & 0x80000000) != 0) {
-    // negative number
-    return -(0x100000000 * (v1 ^ 0xffffffff) + (v2 ^ 0xffffffff)) - 1;
-  } else {
-    return 0x100000000 * v1 + v2;
-  }
+  var high = this.readU4be();
+  var low = this.readU4be();
+  return KaitaiStream.twoU4sToS8(high, low);
 };
 
 // ........................................................................
@@ -260,15 +254,9 @@ KaitaiStream.prototype.readS4le = function(e) {
  */
 KaitaiStream.prototype.readS8le = function(e) {
   this.ensureBytesLeft(8);
-  var v1 = this.readU4le();
-  var v2 = this.readU4le();
-
-  if ((v2 & 0x80000000) != 0) {
-    // negative number
-    return -(0x100000000 * (v2 ^ 0xffffffff) + (v1 ^ 0xffffffff)) - 1;
-  } else {
-    return 0x100000000 * v2 + v1;
-  }
+  var low = this.readU4le();
+  var high = this.readU4le();
+  return KaitaiStream.twoU4sToS8(high, low);
 };
 
 // ------------------------------------------------------------------------
@@ -801,6 +789,19 @@ KaitaiStream.createStringFromArray = function(array) {
   }
   return chunks.join("");
 };
+
+KaitaiStream.twoU4sToS8 = function(high, low) {
+  if ((high & 0x80000000) != 0) {
+    // negative number
+    high = high ^ 0xffffffff;
+    high = high < 0 ? 2**32 + high : high;
+    low = low ^ 0xffffffff;
+    low = low < 0 ? 2**32 + low : low;
+    return -(0x100000000 * high + low) - 1;
+  } else {
+    return 0x100000000 * high + low;
+  }
+}
 
 return KaitaiStream;
 
