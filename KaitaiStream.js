@@ -794,7 +794,6 @@ KaitaiStream.twoU4sToS8 = function(high, low) {
   if ((high & 0x80000000) != 0) {
     // negative number
     high = high ^ 0xffffffff;
-    high = high < 0 ? 2**32 + high : high;
     low = low ^ 0xffffffff;
     low = low < 0 ? 2**32 + low : low;
     return -(0x100000000 * high + low) - 1;
