@@ -1,6 +1,6 @@
 {
   "name": "kaitai-struct",
-  "version": "0.9.0-SNAPSHOT.3",
+  "version": "0.9.0",
   "description": "Kaitai Struct: runtime library for Javascript",
   "main": "index.js",
   "repository": {
