@@ -478,7 +478,7 @@ KaitaiStream.prototype.readBitsIntLe = function(n) {
   // derive reading result
   var res = this.bits & mask;
   // remove bottom bits that we've just read by shifting
-  this.bits >>= n;
+  this.bits >>>= n;
   this.bitsLeft -= n;
 
   return res;
