@@ -1,5 +1,7 @@
 # Kaitai Struct: runtime library for JavaScript
 
+[![npm](https://img.shields.io/npm/v/kaitai-struct)](https://www.npmjs.com/package/kaitai-struct)
+
 This library implements Kaitai Struct API for JavaScript.
 
 Kaitai Struct is a declarative language used for describe various binary
