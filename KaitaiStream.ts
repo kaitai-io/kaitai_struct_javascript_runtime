@@ -463,7 +463,7 @@ class KaitaiStream {
     // derive reading result
     var res = this.bits & mask;
     // remove bottom bits that we've just read by shifting
-    this.bits >>= n;
+    this.bits >>>= n;
     this.bitsLeft -= n;
 
     return res;
@@ -531,16 +531,18 @@ class KaitaiStream {
 
   static bytesStripRight(data, padByte) {
     var newLen = data.length;
-    while (data[newLen - 1] === padByte)
+    while (data[newLen - 1] === padByte) {
       newLen--;
+    }
     return data.slice(0, newLen);
   };
 
   static bytesTerminate(data, term, include) {
     var newLen = 0;
     var maxLen = data.length;
-    while (newLen < maxLen && data[newLen] !== term)
+    while (newLen < maxLen && data[newLen] !== term) {
       newLen++;
+    }
     if (include && newLen < maxLen)
       newLen++;
     return data.slice(0, newLen);
@@ -794,6 +796,19 @@ class KaitaiStream {
       Object.setPrototypeOf(this, KaitaiStream.ValidationNotAnyOfError.prototype);
       this.name = "ValidationNotAnyOfError";
       this.message = "not any of the list, got [" + actual + "]";
+      this.actual = actual;
+    }
+  };
+
+  static ValidationExprError = class extends Error {
+    actual: any;
+
+    constructor(actual, io, srcPath) {
+      super();
+      // Workaround https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
+      Object.setPrototypeOf(this, KaitaiStream.ValidationExprError.prototype);
+      this.name = "ValidationExprError";
+      this.message = "not matching the expression, got [" + actual + "]";
       this.actual = actual;
     }
   };
