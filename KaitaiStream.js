@@ -546,16 +546,18 @@ KaitaiStream.prototype.ensureFixedContents = function(expected) {
 
 KaitaiStream.bytesStripRight = function(data, padByte) {
   var newLen = data.length;
-  while (data[newLen - 1] === padByte)
+  while (data[newLen - 1] === padByte) {
     newLen--;
+  }
   return data.slice(0, newLen);
 };
 
 KaitaiStream.bytesTerminate = function(data, term, include) {
   var newLen = 0;
   var maxLen = data.length;
-  while (newLen < maxLen && data[newLen] !== term)
+  while (newLen < maxLen && data[newLen] !== term) {
     newLen++;
+  }
   if (include && newLen < maxLen)
     newLen++;
   return data.slice(0, newLen);
