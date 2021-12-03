@@ -1,18 +1,38 @@
 // -*- mode: js; js-indent-level: 2; -*-
 
+// Interfaces for optional dependencies
+interface IconvLite {
+  decode(buffer: Buffer | Uint8Array, encoding: string): string
+}
+
+interface Zlib {
+  inflateSync(buf: ArrayBuffer | NodeJS.ArrayBufferView): Buffer;
+}
+
+interface Pako {
+  inflate(data: Uint8Array | number[]): Uint8Array;
+}
+
+// Workaround for https://github.com/microsoft/TypeScript/issues/36470
+declare global {
+  interface CallableFunction {
+    apply<T, A, R>(this: (this: T, ...args: A[]) => R, thisArg: T, args: ArrayLike<A>): R;
+  }
+}
+
+// When loaded into a web worker, pako gets added to the global scope
+declare const pako: Pako;
+
 /**
  * KaitaiStream is an implementation of Kaitai Struct API for JavaScript.
  * Based on DataStream - https://github.com/kig/DataStream.js .
  */
 class KaitaiStream {
-  // Temporary hack since I don't want to declare all members, yet
-  [key: string]: any;
-
   /**
    * @param arrayBuffer ArrayBuffer to read from.
    * @param byteOffset Offset from arrayBuffer beginning for the KaitaiStream.
    */
-  constructor(arrayBuffer, byteOffset) {
+  constructor(arrayBuffer: ArrayBuffer | DataView | number, byteOffset?: number) {
     this._byteOffset = byteOffset || 0;
     if (arrayBuffer instanceof ArrayBuffer) {
       this.buffer = arrayBuffer;
@@ -33,7 +53,14 @@ class KaitaiStream {
    * Updated to be max of original buffer size and last written size.
    * If dynamicSize is false is set to buffer size.
    */
-  _byteLength: number = 0;
+  private _byteLength = 0;
+  private _byteOffset = 0;
+  private _buffer!: ArrayBuffer;
+  private _dataView!: DataView;
+
+  public pos: number;
+  public bits = 0;
+  public bitsLeft = 0;
 
   /**
    * Dependency configuration data. Holds urls for (optional) dynamic loading
@@ -43,15 +70,15 @@ class KaitaiStream {
    * NOTE: `depUrls` is a static property of KaitaiStream (the factory), like the various
    * processing functions. It is NOT part of the prototype of instances.
    */
-  static depUrls = {
+  static depUrls: Record<string, string | undefined> = {
     // processZlib uses this and expected a link to a copy of pako.
     // specifically the pako_inflate.min.js script at:
     // https://raw.githubusercontent.com/nodeca/pako/master/dist/pako_inflate.min.js
     zlib: undefined
   };
 
-  static zlib: any;
-  static iconvlite: any;
+  public static iconvlite?: IconvLite;
+  public static zlib?: Pako | Zlib;
 
   /**
    * Gets the backing ArrayBuffer of the KaitaiStream object.
@@ -147,7 +174,7 @@ class KaitaiStream {
    *
    * @param pos Position to seek to.
    */
-  seek(pos) {
+  seek(pos: number) {
     var npos = Math.max(0, Math.min(this.size, pos));
     this.pos = (isNaN(npos) || !isFinite(npos)) ? 0 : npos;
   };
@@ -459,7 +486,7 @@ class KaitaiStream {
    * @returns The read bits.
    * @throws {Error}
    */
-  readBitsIntBe(n) {
+  readBitsIntBe(n: number) {
     // JS only supports bit operations on 32 bits
     if (n > 32) {
       throw new Error(`readBitsIntBe: the maximum supported bit length is 32 (tried to read ${n} bits)`);
@@ -498,7 +525,7 @@ class KaitaiStream {
    * @param n The number of bits to read.
    * @returns The read bits.
    */
-  readBitsInt(n) {
+  readBitsInt(n: number) {
     return this.readBitsIntBe(n);
   }
 
@@ -507,7 +534,7 @@ class KaitaiStream {
    * @returns The read bits.
    * @throws {Error}
    */
-  readBitsIntLe(n) {
+  readBitsIntLe(n: number) {
     // JS only supports bit operations on 32 bits
     if (n > 32) {
       throw new Error(`readBitsIntLe: the maximum supported bit length is 32 (tried to read ${n} bits)`);
@@ -550,7 +577,7 @@ class KaitaiStream {
    * @param len The number of bytes to read.
    * @returns The read bytes.
    */
-  readBytes(len) {
+  readBytes(len: number) {
     return this.mapUint8Array(len);
   };
 
@@ -571,7 +598,7 @@ class KaitaiStream {
    * @returns The read bytes.
    * @throws {string}
    */
-  readBytesTerm(terminator, include, consume, eosError) {
+  readBytesTerm(terminator: number, include: boolean, consume: boolean, eosError: boolean) {
     var blen = this.size - this.pos;
     var u8 = new Uint8Array(this._buffer, this._byteOffset + this.pos);
     for (var i = 0; i < blen && u8[i] !== terminator; i++); // find first zero byte
@@ -603,7 +630,7 @@ class KaitaiStream {
    * @returns The read bytes.
    * @throws {KaitaiStream.UnexpectedDataError}
    */
-  ensureFixedContents(expected) {
+  ensureFixedContents(expected: ArrayLike<number>) {
     var actual = this.readBytes(expected.length);
     if (actual.length !== expected.length) {
       throw new KaitaiStream.UnexpectedDataError(expected, actual);
@@ -622,7 +649,7 @@ class KaitaiStream {
    * @param padByte The byte to strip.
    * @returns The stripped data.
    */
-  static bytesStripRight(data, padByte) {
+  static bytesStripRight(data: number[] | NodeJS.TypedArray, padByte: number) {
     var newLen = data.length;
     while (data[newLen - 1] === padByte) {
       newLen--;
@@ -636,7 +663,7 @@ class KaitaiStream {
    * @param include True if the returned bytes should include the terminator.
    * @returns The terminated bytes.
    */
-  static bytesTerminate(data, term, include) {
+  static bytesTerminate(data: number[] | NodeJS.TypedArray, term: number, include: boolean) {
     var newLen = 0;
     var maxLen = data.length;
     while (newLen < maxLen && data[newLen] !== term) {
@@ -652,7 +679,7 @@ class KaitaiStream {
    * @param encoding The character encoding.
    * @returns The decoded string.
    */
-  static bytesToStr(arr, encoding) {
+  static bytesToStr(arr: Uint8Array, encoding: BufferEncoding) {
     if (encoding == null || encoding.toLowerCase() === "ascii") {
       return KaitaiStream.createStringFromArray(arr);
     } else {
@@ -671,12 +698,11 @@ class KaitaiStream {
           case 'ucs-2':
           case 'utf16le':
           case 'utf-16le':
-            return new Buffer(arr).toString(encoding);
-            break;
+            return Buffer.from(arr).toString(encoding);
           default:
             // unsupported encoding, we'll have to resort to iconv-lite
             if (typeof KaitaiStream.iconvlite === 'undefined')
-              KaitaiStream.iconvlite = require('iconv-lite');
+              KaitaiStream.iconvlite = require('iconv-lite') as IconvLite;
 
             return KaitaiStream.iconvlite.decode(arr, encoding);
         }
@@ -693,7 +719,7 @@ class KaitaiStream {
    * @param key The key byte.
    * @returns The Xor'd bytes.
    */
-  static processXorOne(data, key) {
+  static processXorOne(data: ArrayLike<number>, key: number) {
     var r = new Uint8Array(data.length);
     var dl = data.length;
     for (var i = 0; i < dl; i++)
@@ -706,7 +732,7 @@ class KaitaiStream {
    * @param key The key bytes.
    * @returns The Xor'd bytes.
    */
-  static processXorMany(data, key) {
+  static processXorMany(data: ArrayLike<number>, key: ArrayLike<number>) {
     var dl = data.length;
     var r = new Uint8Array(dl);
     var kl = key.length;
@@ -727,7 +753,7 @@ class KaitaiStream {
    * @returns The rotated bytes.
    * @throws {string}
    */
-  static processRotateLeft(data, amount, groupSize) {
+  static processRotateLeft(data: ArrayLike<number>, amount: number, groupSize: number) {
     if (groupSize !== 1)
       throw ("unable to rotate group of " + groupSize + " bytes yet");
 
@@ -745,16 +771,15 @@ class KaitaiStream {
    * @param buf The input bytes.
    * @returns The uncompressed bytes.
    */
-  static processZlib(buf) {
+  static processZlib(buf: Uint8Array) {
     if (typeof require !== 'undefined') {
       // require is available - we're running under node
       if (typeof KaitaiStream.zlib === 'undefined')
-        KaitaiStream.zlib = require('zlib');
+        KaitaiStream.zlib = require('zlib') as Zlib;
       // use node's zlib module API
-      var r = KaitaiStream.zlib.inflateSync(
+      return (KaitaiStream.zlib as Zlib).inflateSync(
         Buffer.from(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength))
       );
-      return r;
     } else {
       // no require() - assume we're running as a web worker in browser.
       // user should have configured KaitaiStream.depUrls.zlib, if not
@@ -762,11 +787,10 @@ class KaitaiStream {
       if (typeof KaitaiStream.zlib === 'undefined'
         && typeof KaitaiStream.depUrls.zlib !== 'undefined') {
         importScripts(KaitaiStream.depUrls.zlib);
-        KaitaiStream.zlib = (self as any).pako;
+        KaitaiStream.zlib = pako;
       }
       // use pako API
-      r = KaitaiStream.zlib.inflate(buf);
-      return r;
+      return (KaitaiStream.zlib as Pako).inflate(buf);
     }
   };
 
@@ -780,7 +804,7 @@ class KaitaiStream {
    * @returns The result of `a` mod `b`.
    * @throws {string}
    */
-  static mod(a, b) {
+  static mod(a: number, b: number) {
     if (b <= 0)
       throw "mod divisor <= 0";
     var r = a % b;
@@ -795,7 +819,7 @@ class KaitaiStream {
    * @param arr The input array.
    * @returns The smallest value.
    */
-  static arrayMin(arr) {
+  static arrayMin(arr: ArrayLike<number>) {
     var min = arr[0];
     var x;
     for (var i = 1, n = arr.length; i < n; ++i) {
@@ -811,7 +835,7 @@ class KaitaiStream {
    * @param arr The input array.
    * @returns The largest value.
    */
-  static arrayMax(arr) {
+  static arrayMax(arr: ArrayLike<number>) {
     var max = arr[0];
     var x;
     for (var i = 1, n = arr.length; i < n; ++i) {
@@ -828,7 +852,7 @@ class KaitaiStream {
    * @param b The second array.
    * @returns `0` if the arrays are the equal, a positive number if `a` is greater than `b`, or a negative number if `a` is less than `b`.
    */
-  static byteArrayCompare(a, b) {
+  static byteArrayCompare(a: ArrayLike<number>, b: ArrayLike<number>) {
     if (a === b)
       return 0;
     var al = a.length;
@@ -860,7 +884,7 @@ class KaitaiStream {
      * @param bytesReq The number of bytes requested.
      * @param bytesAvail The number of bytes available.
      */
-    constructor(bytesReq, bytesAvail) {
+    constructor(bytesReq: number, bytesAvail: number) {
       super();
       // Workaround https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
       Object.setPrototypeOf(this, KaitaiStream.EOFError.prototype);
@@ -882,7 +906,7 @@ class KaitaiStream {
      * @param expected The expected value.
      * @param actual The actual value.
      */
-    constructor(expected, actual) {
+    constructor(expected: any, actual: any) {
       super();
       // Workaround https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
       Object.setPrototypeOf(this, KaitaiStream.UnexpectedDataError.prototype);
@@ -910,7 +934,7 @@ class KaitaiStream {
      * @param expected The expected value.
      * @param actual The actual value.
      */
-    constructor(expected, actual) {
+    constructor(expected: any, actual: any) {
       super();
       // Workaround https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
       Object.setPrototypeOf(this, KaitaiStream.ValidationNotEqualError.prototype);
@@ -929,7 +953,7 @@ class KaitaiStream {
      * @param min The minimum allowed value.
      * @param actual The actual value.
      */
-    constructor(min, actual) {
+    constructor(min: any, actual: any) {
       super();
       // Workaround https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
       Object.setPrototypeOf(this, KaitaiStream.ValidationLessThanError.prototype);
@@ -948,7 +972,7 @@ class KaitaiStream {
      * @param max The maximum allowed value.
      * @param actual The actual value.
      */
-    constructor(max, actual) {
+    constructor(max: any, actual: any) {
       super();
       // Workaround https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
       Object.setPrototypeOf(this, KaitaiStream.ValidationGreaterThanError.prototype);
@@ -965,7 +989,7 @@ class KaitaiStream {
     /**
      * @param actual The actual value.
      */
-    constructor(actual) {
+    constructor(actual: any) {
       super();
       // Workaround https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
       Object.setPrototypeOf(this, KaitaiStream.ValidationNotAnyOfError.prototype);
@@ -981,7 +1005,7 @@ class KaitaiStream {
     /**
      * @param actual The actual value.
      */
-    constructor(actual) {
+    constructor(actual: any) {
       super();
       // Workaround https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
       Object.setPrototypeOf(this, KaitaiStream.ValidationExprError.prototype);
@@ -998,7 +1022,7 @@ class KaitaiStream {
    * @param length Number of bytes to require.
    * @throws {KaitaiStream.EOFError}
    */
-  ensureBytesLeft(length) {
+  ensureBytesLeft(length: number) {
     if (this.pos + length > this.size) {
       throw new KaitaiStream.EOFError(length, this.size - this.pos);
     }
@@ -1011,7 +1035,7 @@ class KaitaiStream {
    * @param length Number of elements to map.
    * @returns A Uint8Array to the KaitaiStream backing buffer.
    */
-  mapUint8Array(length) {
+  mapUint8Array(length: number) {
     length |= 0;
 
     this.ensureBytesLeft(length);
@@ -1029,12 +1053,12 @@ class KaitaiStream {
    * @param array Array of character codes.
    * @returns String created from the character codes.
    */
-  static createStringFromArray = function (array) {
+  static createStringFromArray = function (array: Array<number> | Uint8Array) {
     var chunk_size = 0x8000;
     var chunks = [];
-    var useSubarray = typeof array.subarray === 'function';
     for (var i = 0; i < array.length; i += chunk_size) {
-      chunks.push(String.fromCharCode.apply(null, useSubarray ? array.subarray(i, i + chunk_size) : array.slice(i, i + chunk_size)));
+      const chunk = 'subarray' in array ? array.subarray(i, i + chunk_size) : array.slice(i, i + chunk_size)
+      chunks.push(String.fromCharCode.apply(null, chunk));
     }
     return chunks.join("");
   };
