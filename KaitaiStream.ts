@@ -85,7 +85,7 @@ class KaitaiStream {
    *
    * @returns The backing ArrayBuffer.
    */
-  get buffer() {
+  get buffer(): ArrayBuffer {
     this._trimAlloc();
     return this._buffer;
   }
@@ -104,7 +104,7 @@ class KaitaiStream {
    *
    * @returns The byteOffset.
    */
-  get byteOffset() {
+  get byteOffset(): number {
     return this._byteOffset;
   }
   /**
@@ -122,7 +122,7 @@ class KaitaiStream {
    *
    * @returns The backing DataView.
    */
-  get dataView() {
+  get dataView(): DataView {
     return this._dataView;
   }
   /**
@@ -142,13 +142,13 @@ class KaitaiStream {
    * the virtual byteLength is smaller than the buffer byteLength (happens after
    * growing the buffer with writes and not filling the extra space completely).
    */
-  _trimAlloc() {
+  _trimAlloc(): void {
     if (this._byteLength === this._buffer.byteLength) {
       return;
     }
-    var buf = new ArrayBuffer(this._byteLength);
-    var dst = new Uint8Array(buf);
-    var src = new Uint8Array(this._buffer, 0, dst.length);
+    const buf = new ArrayBuffer(this._byteLength);
+    const dst = new Uint8Array(buf);
+    const src = new Uint8Array(this._buffer, 0, dst.length);
     dst.set(src);
     this.buffer = buf;
   }
@@ -164,9 +164,9 @@ class KaitaiStream {
    *
    * @returns True if the seek pointer is at the end of the buffer.
    */
-  isEof() {
+  isEof(): boolean {
     return this.pos >= this.size && this.bitsLeft === 0;
-  };
+  }
 
   /**
    * Sets the KaitaiStream read/write position to given position.
@@ -174,17 +174,17 @@ class KaitaiStream {
    *
    * @param pos Position to seek to.
    */
-  seek(pos: number) {
-    var npos = Math.max(0, Math.min(this.size, pos));
+  seek(pos: number): void {
+    const npos = Math.max(0, Math.min(this.size, pos));
     this.pos = (isNaN(npos) || !isFinite(npos)) ? 0 : npos;
-  };
+  }
 
   /**
    * Returns the byte length of the KaitaiStream object.
    * 
    * @returns The byte length.
    */
-  get size() {
+  get size(): number {
     return this._byteLength - this._byteOffset;
   }
 
@@ -201,12 +201,12 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readS1() {
+  readS1(): number {
     this.ensureBytesLeft(1);
-    var v = this._dataView.getInt8(this.pos);
+    const v = this._dataView.getInt8(this.pos);
     this.pos += 1;
     return v;
-  };
+  }
 
   // ........................................................................
   // Big-endian
@@ -217,24 +217,24 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readS2be() {
+  readS2be(): number {
     this.ensureBytesLeft(2);
-    var v = this._dataView.getInt16(this.pos);
+    const v = this._dataView.getInt16(this.pos);
     this.pos += 2;
     return v;
-  };
+  }
 
   /**
    * Reads a 32-bit big-endian signed int from the stream.
    *
    * @returns The read number.
    */
-  readS4be() {
+  readS4be(): number {
     this.ensureBytesLeft(4);
-    var v = this._dataView.getInt32(this.pos);
+    const v = this._dataView.getInt32(this.pos);
     this.pos += 4;
     return v;
-  };
+  }
 
   /**
    * Reads a 64-bit big-endian unsigned int from the stream. Note that
@@ -244,10 +244,10 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readS8be() {
+  readS8be(): number {
     this.ensureBytesLeft(8);
-    var v1 = this.readU4be();
-    var v2 = this.readU4be();
+    const v1 = this.readU4be();
+    const v2 = this.readU4be();
 
     if ((v1 & 0x80000000) !== 0) {
       // negative number
@@ -255,7 +255,7 @@ class KaitaiStream {
     } else {
       return 0x100000000 * v1 + v2;
     }
-  };
+  }
 
   // ........................................................................
   // Little-endian
@@ -266,24 +266,24 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readS2le() {
+  readS2le(): number {
     this.ensureBytesLeft(2);
-    var v = this._dataView.getInt16(this.pos, true);
+    const v = this._dataView.getInt16(this.pos, true);
     this.pos += 2;
     return v;
-  };
+  }
 
   /**
    * Reads a 32-bit little-endian signed int from the stream.
    *
    * @returns The read number.
    */
-  readS4le() {
+  readS4le(): number {
     this.ensureBytesLeft(4);
-    var v = this._dataView.getInt32(this.pos, true);
+    const v = this._dataView.getInt32(this.pos, true);
     this.pos += 4;
     return v;
-  };
+  }
 
   /**
    * Reads a 64-bit little-endian unsigned int from the stream. Note that
@@ -293,10 +293,10 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readS8le() {
+  readS8le(): number {
     this.ensureBytesLeft(8);
-    var v1 = this.readU4le();
-    var v2 = this.readU4le();
+    const v1 = this.readU4le();
+    const v2 = this.readU4le();
 
     if ((v2 & 0x80000000) !== 0) {
       // negative number
@@ -304,7 +304,7 @@ class KaitaiStream {
     } else {
       return 0x100000000 * v2 + v1;
     }
-  };
+  }
 
   // ------------------------------------------------------------------------
   // Unsigned
@@ -315,12 +315,12 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readU1() {
+  readU1(): number {
     this.ensureBytesLeft(1);
-    var v = this._dataView.getUint8(this.pos);
+    const v = this._dataView.getUint8(this.pos);
     this.pos += 1;
     return v;
-  };
+  }
 
   // ........................................................................
   // Big-endian
@@ -331,24 +331,24 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readU2be() {
+  readU2be(): number {
     this.ensureBytesLeft(2);
-    var v = this._dataView.getUint16(this.pos);
+    const v = this._dataView.getUint16(this.pos);
     this.pos += 2;
     return v;
-  };
+  }
 
   /**
    * Reads a 32-bit big-endian unsigned int from the stream.
    *
    * @returns The read number.
    */
-  readU4be() {
+  readU4be(): number {
     this.ensureBytesLeft(4);
-    var v = this._dataView.getUint32(this.pos);
+    const v = this._dataView.getUint32(this.pos);
     this.pos += 4;
     return v;
-  };
+  }
 
   /**
    * Reads a 64-bit big-endian unsigned int from the stream. Note that
@@ -358,10 +358,10 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readU8be() {
+  readU8be(): number {
     this.ensureBytesLeft(8);
-    var v1 = this.readU4be();
-    var v2 = this.readU4be();
+    const v1 = this.readU4be();
+    const v2 = this.readU4be();
     return 0x100000000 * v1 + v2;
   }
 
@@ -374,9 +374,9 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readU2le() {
+  readU2le(): number {
     this.ensureBytesLeft(2);
-    var v = this._dataView.getUint16(this.pos, true);
+    const v = this._dataView.getUint16(this.pos, true);
     this.pos += 2;
     return v;
   }
@@ -386,9 +386,9 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readU4le() {
+  readU4le(): number {
     this.ensureBytesLeft(4);
-    var v = this._dataView.getUint32(this.pos, true);
+    const v = this._dataView.getUint32(this.pos, true);
     this.pos += 4;
     return v;
   }
@@ -401,12 +401,12 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readU8le() {
+  readU8le(): number {
     this.ensureBytesLeft(8);
-    var v1 = this.readU4le();
-    var v2 = this.readU4le();
+    const v1 = this.readU4le();
+    const v2 = this.readU4le();
     return 0x100000000 * v2 + v1;
-  };
+  }
 
 
   // ========================================================================
@@ -422,24 +422,24 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readF4be() {
+  readF4be(): number {
     this.ensureBytesLeft(4);
-    var v = this._dataView.getFloat32(this.pos);
+    const v = this._dataView.getFloat32(this.pos);
     this.pos += 4;
     return v;
-  };
+  }
 
   /**
    * Reads a 64-bit big-endian float from the stream.
    *
    * @returns The read number.
    */
-  readF8be() {
+  readF8be(): number {
     this.ensureBytesLeft(8);
-    var v = this._dataView.getFloat64(this.pos);
+    const v = this._dataView.getFloat64(this.pos);
     this.pos += 8;
     return v;
-  };
+  }
 
   // ------------------------------------------------------------------------
   // Little endian
@@ -450,24 +450,24 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readF4le() {
+  readF4le(): number {
     this.ensureBytesLeft(4);
-    var v = this._dataView.getFloat32(this.pos, true);
+    const v = this._dataView.getFloat32(this.pos, true);
     this.pos += 4;
     return v;
-  };
+  }
 
   /**
    * Reads a 64-bit little-endian float from the stream.
    *
    * @returns The read number.
    */
-  readF8le() {
+  readF8le(): number {
     this.ensureBytesLeft(8);
-    var v = this._dataView.getFloat64(this.pos, true);
+    const v = this._dataView.getFloat64(this.pos, true);
     this.pos += 8;
     return v;
-  };
+  }
 
   // ------------------------------------------------------------------------
   // Unaligned bit values
@@ -476,29 +476,29 @@ class KaitaiStream {
   /**
    * Aligns bit reading to the byte boundry.
    */
-  alignToByte() {
+  alignToByte(): void {
     this.bits = 0;
     this.bitsLeft = 0;
-  };
+  }
 
   /**
    * @param n The number of bits to read.
    * @returns The read bits.
    * @throws {Error}
    */
-  readBitsIntBe(n: number) {
+  readBitsIntBe(n: number): number {
     // JS only supports bit operations on 32 bits
     if (n > 32) {
       throw new Error(`readBitsIntBe: the maximum supported bit length is 32 (tried to read ${n} bits)`);
     }
-    var bitsNeeded = n - this.bitsLeft;
+    const bitsNeeded = n - this.bitsLeft;
     if (bitsNeeded > 0) {
       // 1 bit  => 1 byte
       // 8 bits => 1 byte
       // 9 bits => 2 bytes
-      var bytesNeeded = Math.ceil(bitsNeeded / 8);
-      var buf = this.readBytes(bytesNeeded);
-      for (var i = 0; i < bytesNeeded; i++) {
+      const bytesNeeded = Math.ceil(bitsNeeded / 8);
+      const buf = this.readBytes(bytesNeeded);
+      for (let i = 0; i < bytesNeeded; i++) {
         this.bits <<= 8;
         this.bits |= buf[i];
         this.bitsLeft += 8;
@@ -506,17 +506,17 @@ class KaitaiStream {
     }
 
     // raw mask with required number of 1s, starting from lowest bit
-    var mask = n === 32 ? 0xffffffff : (1 << n) - 1;
+    let mask = n === 32 ? 0xffffffff : (1 << n) - 1;
     // shift this.bits to align the highest bits with the mask & derive reading result
-    var shiftBits = this.bitsLeft - n;
-    var res = (this.bits >>> shiftBits) & mask;
+    const shiftBits = this.bitsLeft - n;
+    const res = (this.bits >>> shiftBits) & mask;
     // clear top bits that we've just read => AND with 1s
     this.bitsLeft -= n;
     mask = (1 << this.bitsLeft) - 1;
     this.bits &= mask;
 
     return res;
-  };
+  }
 
   /**
    * Unused since Kaitai Struct Compiler v0.9+ - compatibility with older versions.
@@ -525,7 +525,7 @@ class KaitaiStream {
    * @param n The number of bits to read.
    * @returns The read bits.
    */
-  readBitsInt(n: number) {
+  readBitsInt(n: number): number {
     return this.readBitsIntBe(n);
   }
 
@@ -534,34 +534,34 @@ class KaitaiStream {
    * @returns The read bits.
    * @throws {Error}
    */
-  readBitsIntLe(n: number) {
+  readBitsIntLe(n: number): number {
     // JS only supports bit operations on 32 bits
     if (n > 32) {
       throw new Error(`readBitsIntLe: the maximum supported bit length is 32 (tried to read ${n} bits)`);
     }
-    var bitsNeeded = n - this.bitsLeft;
+    const bitsNeeded = n - this.bitsLeft;
     if (bitsNeeded > 0) {
       // 1 bit  => 1 byte
       // 8 bits => 1 byte
       // 9 bits => 2 bytes
-      var bytesNeeded = Math.ceil(bitsNeeded / 8);
-      var buf = this.readBytes(bytesNeeded);
-      for (var i = 0; i < bytesNeeded; i++) {
+      const bytesNeeded = Math.ceil(bitsNeeded / 8);
+      const buf = this.readBytes(bytesNeeded);
+      for (let i = 0; i < bytesNeeded; i++) {
         this.bits |= (buf[i] << this.bitsLeft);
         this.bitsLeft += 8;
       }
     }
 
     // raw mask with required number of 1s, starting from lowest bit
-    var mask = n === 32 ? 0xffffffff : (1 << n) - 1;
+    const mask = n === 32 ? 0xffffffff : (1 << n) - 1;
     // derive reading result
-    var res = this.bits & mask;
+    const res = this.bits & mask;
     // remove bottom bits that we've just read by shifting
     this.bits >>>= n;
     this.bitsLeft -= n;
 
     return res;
-  };
+  }
 
   /**
    * Native endianness. Either KaitaiStream.BIG_ENDIAN or KaitaiStream.LITTLE_ENDIAN
@@ -577,16 +577,16 @@ class KaitaiStream {
    * @param len The number of bytes to read.
    * @returns The read bytes.
    */
-  readBytes(len: number) {
+  readBytes(len: number): Uint8Array {
     return this.mapUint8Array(len);
-  };
+  }
 
   /**
    * @returns The read bytes.
    */
-  readBytesFull() {
+  readBytesFull(): Uint8Array {
     return this.mapUint8Array(this.size - this.pos);
-  };
+  }
 
   /**
    * Reads bytes until the terminator byte is found.
@@ -598,10 +598,11 @@ class KaitaiStream {
    * @returns The read bytes.
    * @throws {string}
    */
-  readBytesTerm(terminator: number, include: boolean, consume: boolean, eosError: boolean) {
-    var blen = this.size - this.pos;
-    var u8 = new Uint8Array(this._buffer, this._byteOffset + this.pos);
-    for (var i = 0; i < blen && u8[i] !== terminator; i++); // find first zero byte
+  readBytesTerm(terminator: number, include: boolean, consume: boolean, eosError: boolean): Uint8Array {
+    const blen = this.size - this.pos;
+    const u8 = new Uint8Array(this._buffer, this._byteOffset + this.pos);
+    let i;
+    for (i = 0; i < blen && u8[i] !== terminator; i++); // find first zero byte
     if (i === blen) {
       // we've read all the buffer and haven't found the terminator
       if (eosError) {
@@ -610,7 +611,7 @@ class KaitaiStream {
         return this.mapUint8Array(i);
       }
     } else {
-      var arr;
+      let arr;
       if (include) {
         arr = this.mapUint8Array(i + 1);
       } else {
@@ -621,7 +622,7 @@ class KaitaiStream {
       }
       return arr;
     }
-  };
+  }
 
   /**
    * Unused since Kaitai Struct Compiler v0.9+ - compatibility with older versions.
@@ -630,32 +631,32 @@ class KaitaiStream {
    * @returns The read bytes.
    * @throws {KaitaiStream.UnexpectedDataError}
    */
-  ensureFixedContents(expected: ArrayLike<number>) {
-    var actual = this.readBytes(expected.length);
+  ensureFixedContents(expected: ArrayLike<number>): Uint8Array {
+    const actual = this.readBytes(expected.length);
     if (actual.length !== expected.length) {
       throw new KaitaiStream.UnexpectedDataError(expected, actual);
     }
-    var actLen = actual.length;
-    for (var i = 0; i < actLen; i++) {
+    const actLen = actual.length;
+    for (let i = 0; i < actLen; i++) {
       if (actual[i] !== expected[i]) {
         throw new KaitaiStream.UnexpectedDataError(expected, actual);
       }
     }
     return actual;
-  };
+  }
 
   /**
    * @param data The data.
    * @param padByte The byte to strip.
    * @returns The stripped data.
    */
-  static bytesStripRight(data: number[] | NodeJS.TypedArray, padByte: number) {
-    var newLen = data.length;
+  static bytesStripRight(data: number[] | NodeJS.TypedArray, padByte: number): number[] | NodeJS.TypedArray {
+    let newLen = data.length;
     while (data[newLen - 1] === padByte) {
       newLen--;
     }
     return data.slice(0, newLen);
-  };
+  }
 
   /**
    * @param data The data.
@@ -663,23 +664,23 @@ class KaitaiStream {
    * @param include True if the returned bytes should include the terminator.
    * @returns The terminated bytes.
    */
-  static bytesTerminate(data: number[] | NodeJS.TypedArray, term: number, include: boolean) {
-    var newLen = 0;
-    var maxLen = data.length;
+  static bytesTerminate(data: number[] | NodeJS.TypedArray, term: number, include: boolean): number[] | NodeJS.TypedArray {
+    let newLen = 0;
+    const maxLen = data.length;
     while (newLen < maxLen && data[newLen] !== term) {
       newLen++;
     }
     if (include && newLen < maxLen)
       newLen++;
     return data.slice(0, newLen);
-  };
+  }
 
   /**
    * @param arr The bytes.
    * @param encoding The character encoding.
    * @returns The decoded string.
    */
-  static bytesToStr(arr: Uint8Array, encoding: BufferEncoding) {
+  static bytesToStr(arr: Uint8Array, encoding: BufferEncoding): string {
     if (encoding == null || encoding.toLowerCase() === "ascii") {
       return KaitaiStream.createStringFromArray(arr);
     } else {
@@ -708,7 +709,7 @@ class KaitaiStream {
         }
       }
     }
-  };
+  }
 
   // ========================================================================
   // Byte array processing
@@ -719,32 +720,32 @@ class KaitaiStream {
    * @param key The key byte.
    * @returns The Xor'd bytes.
    */
-  static processXorOne(data: ArrayLike<number>, key: number) {
-    var r = new Uint8Array(data.length);
-    var dl = data.length;
-    for (var i = 0; i < dl; i++)
+  static processXorOne(data: ArrayLike<number>, key: number): Uint8Array {
+    const r = new Uint8Array(data.length);
+    const dl = data.length;
+    for (let i = 0; i < dl; i++)
       r[i] = data[i] ^ key;
     return r;
-  };
+  }
 
   /**
    * @param data The input bytes.
    * @param key The key bytes.
    * @returns The Xor'd bytes.
    */
-  static processXorMany(data: ArrayLike<number>, key: ArrayLike<number>) {
-    var dl = data.length;
-    var r = new Uint8Array(dl);
-    var kl = key.length;
-    var ki = 0;
-    for (var i = 0; i < dl; i++) {
+  static processXorMany(data: ArrayLike<number>, key: ArrayLike<number>): Uint8Array {
+    const dl = data.length;
+    const r = new Uint8Array(dl);
+    const kl = key.length;
+    let ki = 0;
+    for (let i = 0; i < dl; i++) {
       r[i] = data[i] ^ key[ki];
       ki++;
       if (ki >= kl)
         ki = 0;
     }
     return r;
-  };
+  }
 
   /**
    * @param data The input bytes.
@@ -753,25 +754,25 @@ class KaitaiStream {
    * @returns The rotated bytes.
    * @throws {string}
    */
-  static processRotateLeft(data: ArrayLike<number>, amount: number, groupSize: number) {
+  static processRotateLeft(data: ArrayLike<number>, amount: number, groupSize: number): Uint8Array {
     if (groupSize !== 1)
       throw ("unable to rotate group of " + groupSize + " bytes yet");
 
-    var mask = groupSize * 8 - 1;
-    var antiAmount = -amount & mask;
+    const mask = groupSize * 8 - 1;
+    const antiAmount = -amount & mask;
 
-    var r = new Uint8Array(data.length);
-    for (var i = 0; i < data.length; i++)
+    const r = new Uint8Array(data.length);
+    for (let i = 0; i < data.length; i++)
       r[i] = (data[i] << amount) & 0xff | (data[i] >> antiAmount);
 
     return r;
-  };
+  }
 
   /**
    * @param buf The input bytes.
    * @returns The uncompressed bytes.
    */
-  static processZlib(buf: Uint8Array) {
+  static processZlib(buf: Uint8Array): Uint8Array | Buffer {
     if (typeof require !== 'undefined') {
       // require is available - we're running under node
       if (typeof KaitaiStream.zlib === 'undefined')
@@ -792,7 +793,7 @@ class KaitaiStream {
       // use pako API
       return (KaitaiStream.zlib as Pako).inflate(buf);
     }
-  };
+  }
 
   // ========================================================================
   // Misc runtime operations
@@ -804,14 +805,14 @@ class KaitaiStream {
    * @returns The result of `a` mod `b`.
    * @throws {string}
    */
-  static mod(a: number, b: number) {
+  static mod(a: number, b: number): number {
     if (b <= 0)
       throw "mod divisor <= 0";
-    var r = a % b;
+    let r = a % b;
     if (r < 0)
       r += b;
     return r;
-  };
+  }
 
   /**
    * Gets the smallest value in an array.
@@ -819,15 +820,15 @@ class KaitaiStream {
    * @param arr The input array.
    * @returns The smallest value.
    */
-  static arrayMin(arr: ArrayLike<number>) {
-    var min = arr[0];
-    var x;
-    for (var i = 1, n = arr.length; i < n; ++i) {
+  static arrayMin(arr: ArrayLike<number>): number {
+    let min = arr[0];
+    let x;
+    for (let i = 1, n = arr.length; i < n; ++i) {
       x = arr[i];
       if (x < min) min = x;
     }
     return min;
-  };
+  }
 
   /**
    * Gets the largest value in an array.
@@ -835,15 +836,15 @@ class KaitaiStream {
    * @param arr The input array.
    * @returns The largest value.
    */
-  static arrayMax(arr: ArrayLike<number>) {
-    var max = arr[0];
-    var x;
-    for (var i = 1, n = arr.length; i < n; ++i) {
+  static arrayMax(arr: ArrayLike<number>): number {
+    let max = arr[0];
+    let x;
+    for (let i = 1, n = arr.length; i < n; ++i) {
       x = arr[i];
       if (x > max) max = x;
     }
     return max;
-  };
+  }
 
   /**
    * Compares two arrays of bytes from left to right.
@@ -852,14 +853,14 @@ class KaitaiStream {
    * @param b The second array.
    * @returns `0` if the arrays are the equal, a positive number if `a` is greater than `b`, or a negative number if `a` is less than `b`.
    */
-  static byteArrayCompare(a: ArrayLike<number>, b: ArrayLike<number>) {
+  static byteArrayCompare(a: ArrayLike<number>, b: ArrayLike<number>): number {
     if (a === b)
       return 0;
-    var al = a.length;
-    var bl = b.length;
-    var minLen = al < bl ? al : bl;
-    for (var i = 0; i < minLen; i++) {
-      var cmp = a[i] - b[i];
+    const al = a.length;
+    const bl = b.length;
+    const minLen = al < bl ? al : bl;
+    for (let i = 0; i < minLen; i++) {
+      const cmp = a[i] - b[i];
       if (cmp !== 0)
         return cmp;
     }
@@ -870,7 +871,7 @@ class KaitaiStream {
     } else {
       return al - bl;
     }
-  };
+  }
 
   // ========================================================================
   // Internal implementation details
@@ -892,7 +893,7 @@ class KaitaiStream {
       this.bytesReq = bytesReq;
       this.bytesAvail = bytesAvail;
     }
-  }
+  };
 
   /**
    * Unused since Kaitai Struct Compiler v0.9+ - compatibility with older versions.
@@ -1016,11 +1017,11 @@ class KaitaiStream {
    * @param length Number of bytes to require.
    * @throws {KaitaiStream.EOFError}
    */
-  ensureBytesLeft(length: number) {
+  ensureBytesLeft(length: number): void {
     if (this.pos + length > this.size) {
       throw new KaitaiStream.EOFError(length, this.size - this.pos);
     }
-  };
+  }
 
   /**
    * Maps a Uint8Array into the KaitaiStream buffer.
@@ -1029,15 +1030,15 @@ class KaitaiStream {
    * @param length Number of elements to map.
    * @returns A Uint8Array to the KaitaiStream backing buffer.
    */
-  mapUint8Array(length: number) {
+  mapUint8Array(length: number): Uint8Array {
     length |= 0;
 
     this.ensureBytesLeft(length);
 
-    var arr = new Uint8Array(this._buffer, this.byteOffset + this.pos, length);
+    const arr = new Uint8Array(this._buffer, this.byteOffset + this.pos, length);
     this.pos += length;
     return arr;
-  };
+  }
 
   /**
    * Creates an array from an array of character codes.
@@ -1047,15 +1048,15 @@ class KaitaiStream {
    * @param array Array of character codes.
    * @returns String created from the character codes.
    */
-  static createStringFromArray = function (array: Array<number> | Uint8Array) {
-    var chunk_size = 0x8000;
-    var chunks = [];
-    for (var i = 0; i < array.length; i += chunk_size) {
-      const chunk = 'subarray' in array ? array.subarray(i, i + chunk_size) : array.slice(i, i + chunk_size)
+  static createStringFromArray(array: number[] | Uint8Array): string {
+    const chunk_size = 0x8000;
+    const chunks = [];
+    for (let i = 0; i < array.length; i += chunk_size) {
+      const chunk = 'subarray' in array ? array.subarray(i, i + chunk_size) : array.slice(i, i + chunk_size);
       chunks.push(String.fromCharCode.apply(null, chunk));
     }
     return chunks.join("");
-  };
+  }
 }
 
 export default KaitaiStream;
