@@ -877,6 +877,7 @@ class KaitaiStream {
   // ========================================================================
 
   static EOFError = class extends Error {
+    name = "EOFError";
     bytesReq: number;
     bytesAvail: number;
 
@@ -885,11 +886,9 @@ class KaitaiStream {
      * @param bytesAvail The number of bytes available.
      */
     constructor(bytesReq: number, bytesAvail: number) {
-      super();
-      // Workaround https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
+      super("requested " + bytesReq + " bytes, but only " + bytesAvail + " bytes available");
+      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
       Object.setPrototypeOf(this, KaitaiStream.EOFError.prototype);
-      this.name = "EOFError";
-      this.message = "requested " + bytesReq + " bytes, but only " + bytesAvail + " bytes available";
       this.bytesReq = bytesReq;
       this.bytesAvail = bytesAvail;
     }
@@ -899,6 +898,7 @@ class KaitaiStream {
    * Unused since Kaitai Struct Compiler v0.9+ - compatibility with older versions.
    */
   static UnexpectedDataError = class extends Error {
+    name = "UnexpectedDataError";
     expected: any;
     actual: any;
 
@@ -907,26 +907,26 @@ class KaitaiStream {
      * @param actual The actual value.
      */
     constructor(expected: any, actual: any) {
-      super();
-      // Workaround https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
+      super("expected [" + expected + "], but got [" + actual + "]");
+      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
       Object.setPrototypeOf(this, KaitaiStream.UnexpectedDataError.prototype);
-      this.name = "UnexpectedDataError";
-      this.message = "expected [" + expected + "], but got [" + actual + "]";
       this.expected = expected;
       this.actual = actual;
     }
   };
 
   static UndecidedEndiannessError = class extends Error {
+    name = "UndecidedEndiannessError";
+
     constructor() {
       super();
-      // Workaround https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
+      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
       Object.setPrototypeOf(this, KaitaiStream.UndecidedEndiannessError.prototype);
-      this.name = "UndecidedEndiannessError";
     }
   };
 
   static ValidationNotEqualError = class extends Error {
+    name = "ValidationNotEqualError";
     expected: any;
     actual: any;
 
@@ -935,17 +935,16 @@ class KaitaiStream {
      * @param actual The actual value.
      */
     constructor(expected: any, actual: any) {
-      super();
-      // Workaround https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
+      super("not equal, expected [" + expected + "], but got [" + actual + "]");
+      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
       Object.setPrototypeOf(this, KaitaiStream.ValidationNotEqualError.prototype);
-      this.name = "ValidationNotEqualError";
-      this.message = "not equal, expected [" + expected + "], but got [" + actual + "]";
       this.expected = expected;
       this.actual = actual;
     }
   };
 
   static ValidationLessThanError = class extends Error {
+    name = "ValidationLessThanError";
     min: any;
     actual: any;
 
@@ -954,17 +953,16 @@ class KaitaiStream {
      * @param actual The actual value.
      */
     constructor(min: any, actual: any) {
-      super();
-      // Workaround https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
+      super("not in range, min [" + min + "], but got [" + actual + "]");
+      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
       Object.setPrototypeOf(this, KaitaiStream.ValidationLessThanError.prototype);
-      this.name = "ValidationLessThanError";
-      this.message = "not in range, min [" + min + "], but got [" + actual + "]";
       this.min = min;
       this.actual = actual;
     }
   };
 
   static ValidationGreaterThanError = class extends Error {
+    name = "ValidationGreaterThanError";
     max: any;
     actual: any;
 
@@ -973,44 +971,40 @@ class KaitaiStream {
      * @param actual The actual value.
      */
     constructor(max: any, actual: any) {
-      super();
-      // Workaround https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
+      super("not in range, max [" + max + "], but got [" + actual + "]");
+      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
       Object.setPrototypeOf(this, KaitaiStream.ValidationGreaterThanError.prototype);
-      this.name = "ValidationGreaterThanError";
-      this.message = "not in range, max [" + max + "], but got [" + actual + "]";
       this.max = max;
       this.actual = actual;
     }
   };
 
   static ValidationNotAnyOfError = class extends Error {
+    name = "ValidationNotAnyOfError";
     actual: any;
 
     /**
      * @param actual The actual value.
      */
     constructor(actual: any) {
-      super();
-      // Workaround https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
+      super("not any of the list, got [" + actual + "]");
+      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
       Object.setPrototypeOf(this, KaitaiStream.ValidationNotAnyOfError.prototype);
-      this.name = "ValidationNotAnyOfError";
-      this.message = "not any of the list, got [" + actual + "]";
       this.actual = actual;
     }
   };
 
   static ValidationExprError = class extends Error {
+    name = "ValidationExprError";
     actual: any;
 
     /**
      * @param actual The actual value.
      */
     constructor(actual: any) {
-      super();
-      // Workaround https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
+      super("not matching the expression, got [" + actual + "]");
+      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
       Object.setPrototypeOf(this, KaitaiStream.ValidationExprError.prototype);
-      this.name = "ValidationExprError";
-      this.message = "not matching the expression, got [" + actual + "]";
       this.actual = actual;
     }
   };
