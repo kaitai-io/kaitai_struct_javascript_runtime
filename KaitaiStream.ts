@@ -32,7 +32,7 @@ class KaitaiStream {
    * @param arrayBuffer ArrayBuffer to read from.
    * @param byteOffset Offset from arrayBuffer beginning for the KaitaiStream.
    */
-  constructor(arrayBuffer: ArrayBuffer | DataView | number, byteOffset?: number) {
+  public constructor(arrayBuffer: ArrayBuffer | DataView | number, byteOffset?: number) {
     this._byteOffset = byteOffset || 0;
     if (arrayBuffer instanceof ArrayBuffer) {
       this.buffer = arrayBuffer;
@@ -70,7 +70,7 @@ class KaitaiStream {
    * NOTE: `depUrls` is a static property of KaitaiStream (the factory), like the various
    * processing functions. It is NOT part of the prototype of instances.
    */
-  static depUrls: Record<string, string | undefined> = {
+  public static depUrls: Record<string, string | undefined> = {
     // processZlib uses this and expected a link to a copy of pako.
     // specifically the pako_inflate.min.js script at:
     // https://raw.githubusercontent.com/nodeca/pako/master/dist/pako_inflate.min.js
@@ -85,15 +85,16 @@ class KaitaiStream {
    *
    * @returns The backing ArrayBuffer.
    */
-  get buffer(): ArrayBuffer {
+  public get buffer(): ArrayBuffer {
     this._trimAlloc();
     return this._buffer;
   }
+
   /**
    * Sets the backing ArrayBuffer of the KaitaiStream object and updates the
    * DataView to point to the new buffer.
    */
-  set buffer(v) {
+  public set buffer(v) {
     this._buffer = v;
     this._dataView = new DataView(this._buffer, this._byteOffset);
     this._byteLength = this._buffer.byteLength;
@@ -104,14 +105,15 @@ class KaitaiStream {
    *
    * @returns The byteOffset.
    */
-  get byteOffset(): number {
+  public get byteOffset(): number {
     return this._byteOffset;
   }
+
   /**
    * Sets the byteOffset of the KaitaiStream object and updates the DataView to
    * point to the new byteOffset.
    */
-  set byteOffset(v) {
+  public set byteOffset(v) {
     this._byteOffset = v;
     this._dataView = new DataView(this._buffer, this._byteOffset);
     this._byteLength = this._buffer.byteLength;
@@ -122,14 +124,14 @@ class KaitaiStream {
    *
    * @returns The backing DataView.
    */
-  get dataView(): DataView {
+  public get dataView(): DataView {
     return this._dataView;
   }
   /**
    * Sets the backing DataView of the KaitaiStream object and updates the buffer
    * and byteOffset to point to the DataView values.
    */
-  set dataView(v) {
+  public set dataView(v) {
     this._byteOffset = v.byteOffset;
     this._buffer = v.buffer;
     this._dataView = new DataView(this._buffer, this._byteOffset);
@@ -142,7 +144,7 @@ class KaitaiStream {
    * the virtual byteLength is smaller than the buffer byteLength (happens after
    * growing the buffer with writes and not filling the extra space completely).
    */
-  _trimAlloc(): void {
+  private _trimAlloc(): void {
     if (this._byteLength === this._buffer.byteLength) {
       return;
     }
@@ -164,7 +166,7 @@ class KaitaiStream {
    *
    * @returns True if the seek pointer is at the end of the buffer.
    */
-  isEof(): boolean {
+  public isEof(): boolean {
     return this.pos >= this.size && this.bitsLeft === 0;
   }
 
@@ -174,7 +176,7 @@ class KaitaiStream {
    *
    * @param pos Position to seek to.
    */
-  seek(pos: number): void {
+  public seek(pos: number): void {
     const npos = Math.max(0, Math.min(this.size, pos));
     this.pos = (isNaN(npos) || !isFinite(npos)) ? 0 : npos;
   }
@@ -184,7 +186,7 @@ class KaitaiStream {
    * 
    * @returns The byte length.
    */
-  get size(): number {
+  public get size(): number {
     return this._byteLength - this._byteOffset;
   }
 
@@ -201,7 +203,7 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readS1(): number {
+  public readS1(): number {
     this.ensureBytesLeft(1);
     const v = this._dataView.getInt8(this.pos);
     this.pos += 1;
@@ -217,7 +219,7 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readS2be(): number {
+  public readS2be(): number {
     this.ensureBytesLeft(2);
     const v = this._dataView.getInt16(this.pos);
     this.pos += 2;
@@ -229,7 +231,7 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readS4be(): number {
+  public readS4be(): number {
     this.ensureBytesLeft(4);
     const v = this._dataView.getInt32(this.pos);
     this.pos += 4;
@@ -244,7 +246,7 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readS8be(): number {
+  public readS8be(): number {
     this.ensureBytesLeft(8);
     const v1 = this.readU4be();
     const v2 = this.readU4be();
@@ -266,7 +268,7 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readS2le(): number {
+  public readS2le(): number {
     this.ensureBytesLeft(2);
     const v = this._dataView.getInt16(this.pos, true);
     this.pos += 2;
@@ -278,7 +280,7 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readS4le(): number {
+  public readS4le(): number {
     this.ensureBytesLeft(4);
     const v = this._dataView.getInt32(this.pos, true);
     this.pos += 4;
@@ -293,7 +295,7 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readS8le(): number {
+  public readS8le(): number {
     this.ensureBytesLeft(8);
     const v1 = this.readU4le();
     const v2 = this.readU4le();
@@ -315,7 +317,7 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readU1(): number {
+  public readU1(): number {
     this.ensureBytesLeft(1);
     const v = this._dataView.getUint8(this.pos);
     this.pos += 1;
@@ -331,7 +333,7 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readU2be(): number {
+  public readU2be(): number {
     this.ensureBytesLeft(2);
     const v = this._dataView.getUint16(this.pos);
     this.pos += 2;
@@ -343,7 +345,7 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readU4be(): number {
+  public readU4be(): number {
     this.ensureBytesLeft(4);
     const v = this._dataView.getUint32(this.pos);
     this.pos += 4;
@@ -358,7 +360,7 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readU8be(): number {
+  public readU8be(): number {
     this.ensureBytesLeft(8);
     const v1 = this.readU4be();
     const v2 = this.readU4be();
@@ -374,7 +376,7 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readU2le(): number {
+  public readU2le(): number {
     this.ensureBytesLeft(2);
     const v = this._dataView.getUint16(this.pos, true);
     this.pos += 2;
@@ -386,7 +388,7 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readU4le(): number {
+  public readU4le(): number {
     this.ensureBytesLeft(4);
     const v = this._dataView.getUint32(this.pos, true);
     this.pos += 4;
@@ -401,7 +403,7 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readU8le(): number {
+  public readU8le(): number {
     this.ensureBytesLeft(8);
     const v1 = this.readU4le();
     const v2 = this.readU4le();
@@ -422,7 +424,7 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readF4be(): number {
+  public readF4be(): number {
     this.ensureBytesLeft(4);
     const v = this._dataView.getFloat32(this.pos);
     this.pos += 4;
@@ -434,7 +436,7 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readF8be(): number {
+  public readF8be(): number {
     this.ensureBytesLeft(8);
     const v = this._dataView.getFloat64(this.pos);
     this.pos += 8;
@@ -450,7 +452,7 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readF4le(): number {
+  public readF4le(): number {
     this.ensureBytesLeft(4);
     const v = this._dataView.getFloat32(this.pos, true);
     this.pos += 4;
@@ -462,7 +464,7 @@ class KaitaiStream {
    *
    * @returns The read number.
    */
-  readF8le(): number {
+  public readF8le(): number {
     this.ensureBytesLeft(8);
     const v = this._dataView.getFloat64(this.pos, true);
     this.pos += 8;
@@ -476,7 +478,7 @@ class KaitaiStream {
   /**
    * Aligns bit reading to the byte boundry.
    */
-  alignToByte(): void {
+  public alignToByte(): void {
     this.bits = 0;
     this.bitsLeft = 0;
   }
@@ -486,7 +488,7 @@ class KaitaiStream {
    * @returns The read bits.
    * @throws {Error}
    */
-  readBitsIntBe(n: number): number {
+  public readBitsIntBe(n: number): number {
     // JS only supports bit operations on 32 bits
     if (n > 32) {
       throw new Error(`readBitsIntBe: the maximum supported bit length is 32 (tried to read ${n} bits)`);
@@ -525,7 +527,7 @@ class KaitaiStream {
    * @param n The number of bits to read.
    * @returns The read bits.
    */
-  readBitsInt(n: number): number {
+  public readBitsInt(n: number): number {
     return this.readBitsIntBe(n);
   }
 
@@ -534,7 +536,7 @@ class KaitaiStream {
    * @returns The read bits.
    * @throws {Error}
    */
-  readBitsIntLe(n: number): number {
+  public readBitsIntLe(n: number): number {
     // JS only supports bit operations on 32 bits
     if (n > 32) {
       throw new Error(`readBitsIntLe: the maximum supported bit length is 32 (tried to read ${n} bits)`);
@@ -567,7 +569,7 @@ class KaitaiStream {
    * Native endianness. Either KaitaiStream.BIG_ENDIAN or KaitaiStream.LITTLE_ENDIAN
    * depending on the platform endianness.
    */
-  static endianness = new Int8Array(new Int16Array([1]).buffer)[0] > 0;
+  public static endianness = new Int8Array(new Int16Array([1]).buffer)[0] > 0;
 
   // ========================================================================
   // Byte arrays
@@ -577,14 +579,14 @@ class KaitaiStream {
    * @param len The number of bytes to read.
    * @returns The read bytes.
    */
-  readBytes(len: number): Uint8Array {
+  public readBytes(len: number): Uint8Array {
     return this.mapUint8Array(len);
   }
 
   /**
    * @returns The read bytes.
    */
-  readBytesFull(): Uint8Array {
+  public readBytesFull(): Uint8Array {
     return this.mapUint8Array(this.size - this.pos);
   }
 
@@ -598,7 +600,7 @@ class KaitaiStream {
    * @returns The read bytes.
    * @throws {string}
    */
-  readBytesTerm(terminator: number, include: boolean, consume: boolean, eosError: boolean): Uint8Array {
+  public readBytesTerm(terminator: number, include: boolean, consume: boolean, eosError: boolean): Uint8Array {
     const blen = this.size - this.pos;
     const u8 = new Uint8Array(this._buffer, this._byteOffset + this.pos);
     let i;
@@ -631,7 +633,7 @@ class KaitaiStream {
    * @returns The read bytes.
    * @throws {KaitaiStream.UnexpectedDataError}
    */
-  ensureFixedContents(expected: ArrayLike<number>): Uint8Array {
+  public ensureFixedContents(expected: ArrayLike<number>): Uint8Array {
     const actual = this.readBytes(expected.length);
     if (actual.length !== expected.length) {
       throw new KaitaiStream.UnexpectedDataError(expected, actual);
@@ -650,7 +652,7 @@ class KaitaiStream {
    * @param padByte The byte to strip.
    * @returns The stripped data.
    */
-  static bytesStripRight(data: number[] | NodeJS.TypedArray, padByte: number): number[] | NodeJS.TypedArray {
+  public static bytesStripRight(data: number[] | NodeJS.TypedArray, padByte: number): number[] | NodeJS.TypedArray {
     let newLen = data.length;
     while (data[newLen - 1] === padByte) {
       newLen--;
@@ -664,7 +666,7 @@ class KaitaiStream {
    * @param include True if the returned bytes should include the terminator.
    * @returns The terminated bytes.
    */
-  static bytesTerminate(data: number[] | NodeJS.TypedArray, term: number, include: boolean): number[] | NodeJS.TypedArray {
+  public static bytesTerminate(data: number[] | NodeJS.TypedArray, term: number, include: boolean): number[] | NodeJS.TypedArray {
     let newLen = 0;
     const maxLen = data.length;
     while (newLen < maxLen && data[newLen] !== term) {
@@ -680,7 +682,7 @@ class KaitaiStream {
    * @param encoding The character encoding.
    * @returns The decoded string.
    */
-  static bytesToStr(arr: Uint8Array, encoding: BufferEncoding): string {
+  public static bytesToStr(arr: Uint8Array, encoding: BufferEncoding): string {
     if (encoding == null || encoding.toLowerCase() === "ascii") {
       return KaitaiStream.createStringFromArray(arr);
     } else {
@@ -720,7 +722,7 @@ class KaitaiStream {
    * @param key The key byte.
    * @returns The Xor'd bytes.
    */
-  static processXorOne(data: ArrayLike<number>, key: number): Uint8Array {
+  public static processXorOne(data: ArrayLike<number>, key: number): Uint8Array {
     const r = new Uint8Array(data.length);
     const dl = data.length;
     for (let i = 0; i < dl; i++)
@@ -733,7 +735,7 @@ class KaitaiStream {
    * @param key The key bytes.
    * @returns The Xor'd bytes.
    */
-  static processXorMany(data: ArrayLike<number>, key: ArrayLike<number>): Uint8Array {
+  public static processXorMany(data: ArrayLike<number>, key: ArrayLike<number>): Uint8Array {
     const dl = data.length;
     const r = new Uint8Array(dl);
     const kl = key.length;
@@ -754,7 +756,7 @@ class KaitaiStream {
    * @returns The rotated bytes.
    * @throws {string}
    */
-  static processRotateLeft(data: ArrayLike<number>, amount: number, groupSize: number): Uint8Array {
+  public static processRotateLeft(data: ArrayLike<number>, amount: number, groupSize: number): Uint8Array {
     if (groupSize !== 1)
       throw ("unable to rotate group of " + groupSize + " bytes yet");
 
@@ -772,7 +774,7 @@ class KaitaiStream {
    * @param buf The input bytes.
    * @returns The uncompressed bytes.
    */
-  static processZlib(buf: Uint8Array): Uint8Array | Buffer {
+  public static processZlib(buf: Uint8Array): Uint8Array | Buffer {
     if (typeof require !== 'undefined') {
       // require is available - we're running under node
       if (typeof KaitaiStream.zlib === 'undefined')
@@ -805,7 +807,7 @@ class KaitaiStream {
    * @returns The result of `a` mod `b`.
    * @throws {string}
    */
-  static mod(a: number, b: number): number {
+  public static mod(a: number, b: number): number {
     if (b <= 0)
       throw "mod divisor <= 0";
     let r = a % b;
@@ -820,7 +822,7 @@ class KaitaiStream {
    * @param arr The input array.
    * @returns The smallest value.
    */
-  static arrayMin(arr: ArrayLike<number>): number {
+  public static arrayMin(arr: ArrayLike<number>): number {
     let min = arr[0];
     let x;
     for (let i = 1, n = arr.length; i < n; ++i) {
@@ -836,7 +838,7 @@ class KaitaiStream {
    * @param arr The input array.
    * @returns The largest value.
    */
-  static arrayMax(arr: ArrayLike<number>): number {
+  public static arrayMax(arr: ArrayLike<number>): number {
     let max = arr[0];
     let x;
     for (let i = 1, n = arr.length; i < n; ++i) {
@@ -853,7 +855,7 @@ class KaitaiStream {
    * @param b The second array.
    * @returns `0` if the arrays are the equal, a positive number if `a` is greater than `b`, or a negative number if `a` is less than `b`.
    */
-  static byteArrayCompare(a: ArrayLike<number>, b: ArrayLike<number>): number {
+  public static byteArrayCompare(a: ArrayLike<number>, b: ArrayLike<number>): number {
     if (a === b)
       return 0;
     const al = a.length;
@@ -877,16 +879,16 @@ class KaitaiStream {
   // Internal implementation details
   // ========================================================================
 
-  static EOFError = class extends Error {
-    name = "EOFError";
-    bytesReq: number;
-    bytesAvail: number;
+  public static EOFError = class extends Error {
+    public name = "EOFError";
+    public bytesReq: number;
+    public bytesAvail: number;
 
     /**
      * @param bytesReq The number of bytes requested.
      * @param bytesAvail The number of bytes available.
      */
-    constructor(bytesReq: number, bytesAvail: number) {
+    public constructor(bytesReq: number, bytesAvail: number) {
       super("requested " + bytesReq + " bytes, but only " + bytesAvail + " bytes available");
       // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
       Object.setPrototypeOf(this, KaitaiStream.EOFError.prototype);
@@ -898,16 +900,16 @@ class KaitaiStream {
   /**
    * Unused since Kaitai Struct Compiler v0.9+ - compatibility with older versions.
    */
-  static UnexpectedDataError = class extends Error {
-    name = "UnexpectedDataError";
-    expected: any;
-    actual: any;
+  public static UnexpectedDataError = class extends Error {
+    public name = "UnexpectedDataError";
+    public expected: any;
+    public actual: any;
 
     /**
      * @param expected The expected value.
      * @param actual The actual value.
      */
-    constructor(expected: any, actual: any) {
+    public constructor(expected: any, actual: any) {
       super("expected [" + expected + "], but got [" + actual + "]");
       // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
       Object.setPrototypeOf(this, KaitaiStream.UnexpectedDataError.prototype);
@@ -916,26 +918,26 @@ class KaitaiStream {
     }
   };
 
-  static UndecidedEndiannessError = class extends Error {
-    name = "UndecidedEndiannessError";
+  public static UndecidedEndiannessError = class extends Error {
+    public name = "UndecidedEndiannessError";
 
-    constructor() {
+    public constructor() {
       super();
       // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
       Object.setPrototypeOf(this, KaitaiStream.UndecidedEndiannessError.prototype);
     }
   };
 
-  static ValidationNotEqualError = class extends Error {
-    name = "ValidationNotEqualError";
-    expected: any;
-    actual: any;
+  public static ValidationNotEqualError = class extends Error {
+    public name = "ValidationNotEqualError";
+    public expected: any;
+    public actual: any;
 
     /**
      * @param expected The expected value.
      * @param actual The actual value.
      */
-    constructor(expected: any, actual: any) {
+    public constructor(expected: any, actual: any) {
       super("not equal, expected [" + expected + "], but got [" + actual + "]");
       // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
       Object.setPrototypeOf(this, KaitaiStream.ValidationNotEqualError.prototype);
@@ -944,16 +946,16 @@ class KaitaiStream {
     }
   };
 
-  static ValidationLessThanError = class extends Error {
-    name = "ValidationLessThanError";
-    min: any;
-    actual: any;
+  public static ValidationLessThanError = class extends Error {
+    public name = "ValidationLessThanError";
+    public min: any;
+    public actual: any;
 
     /**
      * @param min The minimum allowed value.
      * @param actual The actual value.
      */
-    constructor(min: any, actual: any) {
+    public constructor(min: any, actual: any) {
       super("not in range, min [" + min + "], but got [" + actual + "]");
       // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
       Object.setPrototypeOf(this, KaitaiStream.ValidationLessThanError.prototype);
@@ -962,16 +964,16 @@ class KaitaiStream {
     }
   };
 
-  static ValidationGreaterThanError = class extends Error {
-    name = "ValidationGreaterThanError";
-    max: any;
-    actual: any;
+  public static ValidationGreaterThanError = class extends Error {
+    public name = "ValidationGreaterThanError";
+    public max: any;
+    public actual: any;
 
     /**
      * @param max The maximum allowed value.
      * @param actual The actual value.
      */
-    constructor(max: any, actual: any) {
+    public constructor(max: any, actual: any) {
       super("not in range, max [" + max + "], but got [" + actual + "]");
       // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
       Object.setPrototypeOf(this, KaitaiStream.ValidationGreaterThanError.prototype);
@@ -980,14 +982,14 @@ class KaitaiStream {
     }
   };
 
-  static ValidationNotAnyOfError = class extends Error {
-    name = "ValidationNotAnyOfError";
-    actual: any;
+  public static ValidationNotAnyOfError = class extends Error {
+    public name = "ValidationNotAnyOfError";
+    public actual: any;
 
     /**
      * @param actual The actual value.
      */
-    constructor(actual: any) {
+    public constructor(actual: any) {
       super("not any of the list, got [" + actual + "]");
       // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
       Object.setPrototypeOf(this, KaitaiStream.ValidationNotAnyOfError.prototype);
@@ -995,14 +997,14 @@ class KaitaiStream {
     }
   };
 
-  static ValidationExprError = class extends Error {
-    name = "ValidationExprError";
-    actual: any;
+  public static ValidationExprError = class extends Error {
+    public name = "ValidationExprError";
+    public actual: any;
 
     /**
      * @param actual The actual value.
      */
-    constructor(actual: any) {
+    public constructor(actual: any) {
       super("not matching the expression, got [" + actual + "]");
       // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
       Object.setPrototypeOf(this, KaitaiStream.ValidationExprError.prototype);
@@ -1017,7 +1019,7 @@ class KaitaiStream {
    * @param length Number of bytes to require.
    * @throws {KaitaiStream.EOFError}
    */
-  ensureBytesLeft(length: number): void {
+  public ensureBytesLeft(length: number): void {
     if (this.pos + length > this.size) {
       throw new KaitaiStream.EOFError(length, this.size - this.pos);
     }
@@ -1030,7 +1032,7 @@ class KaitaiStream {
    * @param length Number of elements to map.
    * @returns A Uint8Array to the KaitaiStream backing buffer.
    */
-  mapUint8Array(length: number): Uint8Array {
+  public mapUint8Array(length: number): Uint8Array {
     length |= 0;
 
     this.ensureBytesLeft(length);
@@ -1048,7 +1050,7 @@ class KaitaiStream {
    * @param array Array of character codes.
    * @returns String created from the character codes.
    */
-  static createStringFromArray(array: number[] | Uint8Array): string {
+  public static createStringFromArray(array: number[] | Uint8Array): string {
     const chunk_size = 0x8000;
     const chunks = [];
     for (let i = 0; i < array.length; i += chunk_size) {
