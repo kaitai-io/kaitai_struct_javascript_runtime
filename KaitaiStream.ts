@@ -1,16 +1,17 @@
 // -*- mode: js; js-indent-level: 2; -*-
 
 /**
-  KaitaiStream is an implementation of Kaitai Struct API for JavaScript.
-  Based on DataStream - https://github.com/kig/DataStream.js
-
-  @param {ArrayBuffer} arrayBuffer ArrayBuffer to read from.
-  @param {?Number} byteOffset Offset from arrayBuffer beginning for the KaitaiStream.
-  */
+ * KaitaiStream is an implementation of Kaitai Struct API for JavaScript.
+ * Based on DataStream - https://github.com/kig/DataStream.js .
+ */
 class KaitaiStream {
   // Temporary hack since I don't want to declare all members, yet
   [key: string]: any;
 
+  /**
+   * @param arrayBuffer ArrayBuffer to read from.
+   * @param byteOffset Offset from arrayBuffer beginning for the KaitaiStream.
+   */
   constructor(arrayBuffer, byteOffset) {
     this._byteOffset = byteOffset || 0;
     if (arrayBuffer instanceof ArrayBuffer) {
@@ -28,20 +29,20 @@ class KaitaiStream {
   }
 
   /**
-    Virtual byte length of the KaitaiStream backing buffer.
-    Updated to be max of original buffer size and last written size.
-    If dynamicSize is false is set to buffer size.
-    */
+   * Virtual byte length of the KaitaiStream backing buffer.
+   * Updated to be max of original buffer size and last written size.
+   * If dynamicSize is false is set to buffer size.
+   */
   _byteLength: number = 0;
 
   /**
-    Dependency configuration data. Holds urls for (optional) dynamic loading
-    of code dependencies from a remote server. For use by (static) processing functions.
-
-    Caller should the supported keys to the asset urls as needed.
-    NOTE: `depUrls` is a static property of KaitaiStream (the factory),like the various
-          processing functions. It is NOT part of the prototype of instances.
-    */
+   * Dependency configuration data. Holds urls for (optional) dynamic loading
+   * of code dependencies from a remote server. For use by (static) processing functions.
+   *
+   * Caller should the supported keys to the asset urls as needed.
+   * NOTE: `depUrls` is a static property of KaitaiStream (the factory), like the various
+   * processing functions. It is NOT part of the prototype of instances.
+   */
   static depUrls = {
     // processZlib uses this and expected a link to a copy of pako.
     // specifically the pako_inflate.min.js script at:
@@ -53,13 +54,18 @@ class KaitaiStream {
   static iconvlite: any;
 
   /**
-    Set/get the backing ArrayBuffer of the KaitaiStream object.
-    The setter updates the DataView to point to the new buffer.
-    */
+   * Gets the backing ArrayBuffer of the KaitaiStream object.
+   *
+   * @returns The backing ArrayBuffer.
+   */
   get buffer() {
     this._trimAlloc();
     return this._buffer;
   }
+  /**
+   * Sets the backing ArrayBuffer of the KaitaiStream object and updates the
+   * DataView to point to the new buffer.
+   */
   set buffer(v) {
     this._buffer = v;
     this._dataView = new DataView(this._buffer, this._byteOffset);
@@ -67,12 +73,17 @@ class KaitaiStream {
   }
 
   /**
-  Set/get the byteOffset of the KaitaiStream object.
-  The setter updates the DataView to point to the new byteOffset.
-  */
+   * Gets the byteOffset of the KaitaiStream object.
+   *
+   * @returns The byteOffset.
+   */
   get byteOffset() {
     return this._byteOffset;
   }
+  /**
+   * Sets the byteOffset of the KaitaiStream object and updates the DataView to
+   * point to the new byteOffset.
+   */
   set byteOffset(v) {
     this._byteOffset = v;
     this._dataView = new DataView(this._buffer, this._byteOffset);
@@ -80,12 +91,17 @@ class KaitaiStream {
   }
 
   /**
-    Set/get the backing DataView of the KaitaiStream object.
-    The setter updates the buffer and byteOffset to point to the DataView values.
-    */
+   * Gets the backing DataView of the KaitaiStream object.
+   *
+   * @returns The backing DataView.
+   */
   get dataView() {
     return this._dataView;
   }
+  /**
+   * Sets the backing DataView of the KaitaiStream object and updates the buffer
+   * and byteOffset to point to the DataView values.
+   */
   set dataView(v) {
     this._byteOffset = v.byteOffset;
     this._buffer = v.buffer;
@@ -94,11 +110,11 @@ class KaitaiStream {
   }
 
   /**
-   Internal function to trim the KaitaiStream buffer when required.
-   Used for stripping out the extra bytes from the backing buffer when
-   the virtual byteLength is smaller than the buffer byteLength (happens after
-   growing the buffer with writes and not filling the extra space completely).
-  */
+   * Internal function to trim the KaitaiStream buffer when required.
+   * Used for stripping out the extra bytes from the backing buffer when
+   * the virtual byteLength is smaller than the buffer byteLength (happens after
+   * growing the buffer with writes and not filling the extra space completely).
+   */
   _trimAlloc() {
     if (this._byteLength === this._buffer.byteLength) {
       return;
@@ -116,29 +132,31 @@ class KaitaiStream {
   // ========================================================================
 
   /**
-   Returns true if the KaitaiStream seek pointer is at the end of buffer and
-   there's no more data to read.
-
-   @return {boolean} True if the seek pointer is at the end of the buffer.
+   * Returns true if the KaitaiStream seek pointer is at the end of buffer and
+   * there's no more data to read.
+   *
+   * @returns True if the seek pointer is at the end of the buffer.
    */
   isEof() {
     return this.pos >= this.size && this.bitsLeft === 0;
   };
 
   /**
-    Sets the KaitaiStream read/write position to given position.
-    Clamps between 0 and KaitaiStream length.
-  
-    @param {number} pos Position to seek to.
-    */
+   * Sets the KaitaiStream read/write position to given position.
+   * Clamps between 0 and KaitaiStream length.
+   *
+   * @param pos Position to seek to.
+   */
   seek(pos) {
     var npos = Math.max(0, Math.min(this.size, pos));
     this.pos = (isNaN(npos) || !isFinite(npos)) ? 0 : npos;
   };
 
   /**
-    Returns the byte length of the KaitaiStream object.
-    */
+   * Returns the byte length of the KaitaiStream object.
+   * 
+   * @returns The byte length.
+   */
   get size() {
     return this._byteLength - this._byteOffset;
   }
@@ -152,9 +170,10 @@ class KaitaiStream {
   // ------------------------------------------------------------------------
 
   /**
-   Reads an 8-bit signed int from the stream.
-   @return {number} The read number.
-  */
+   * Reads an 8-bit signed int from the stream.
+   *
+   * @returns The read number.
+   */
   readS1() {
     this.ensureBytesLeft(1);
     var v = this._dataView.getInt8(this.pos);
@@ -167,9 +186,10 @@ class KaitaiStream {
   // ........................................................................
 
   /**
-    Reads a 16-bit big-endian signed int from the stream.
-    @return {number} The read number.
-  */
+   * Reads a 16-bit big-endian signed int from the stream.
+   *
+   * @returns The read number.
+   */
   readS2be() {
     this.ensureBytesLeft(2);
     var v = this._dataView.getInt16(this.pos);
@@ -178,9 +198,10 @@ class KaitaiStream {
   };
 
   /**
-    Reads a 32-bit big-endian signed int from the stream.
-    @return {number} The read number.
-  */
+   * Reads a 32-bit big-endian signed int from the stream.
+   *
+   * @returns The read number.
+   */
   readS4be() {
     this.ensureBytesLeft(4);
     var v = this._dataView.getInt32(this.pos);
@@ -189,12 +210,13 @@ class KaitaiStream {
   };
 
   /**
-    Reads a 64-bit big-endian unsigned int from the stream. Note that
-    JavaScript does not support 64-bit integers natively, so it will
-    automatically upgrade internal representation to use IEEE 754
-    double precision float.
-    @return {number} The read number.
-  */
+   * Reads a 64-bit big-endian unsigned int from the stream. Note that
+   * JavaScript does not support 64-bit integers natively, so it will
+   * automatically upgrade internal representation to use IEEE 754
+   * double precision float.
+   *
+   * @returns The read number.
+   */
   readS8be() {
     this.ensureBytesLeft(8);
     var v1 = this.readU4be();
@@ -213,9 +235,10 @@ class KaitaiStream {
   // ........................................................................
 
   /**
-    Reads a 16-bit little-endian signed int from the stream.
-    @return {number} The read number.
-  */
+   * Reads a 16-bit little-endian signed int from the stream.
+   *
+   * @returns The read number.
+   */
   readS2le() {
     this.ensureBytesLeft(2);
     var v = this._dataView.getInt16(this.pos, true);
@@ -224,9 +247,10 @@ class KaitaiStream {
   };
 
   /**
-    Reads a 32-bit little-endian signed int from the stream.
-    @return {number} The read number.
-  */
+   * Reads a 32-bit little-endian signed int from the stream.
+   *
+   * @returns The read number.
+   */
   readS4le() {
     this.ensureBytesLeft(4);
     var v = this._dataView.getInt32(this.pos, true);
@@ -235,12 +259,13 @@ class KaitaiStream {
   };
 
   /**
-    Reads a 64-bit little-endian unsigned int from the stream. Note that
-    JavaScript does not support 64-bit integers natively, so it will
-    automatically upgrade internal representation to use IEEE 754
-    double precision float.
-    @return {number} The read number.
-  */
+   * Reads a 64-bit little-endian unsigned int from the stream. Note that
+   * JavaScript does not support 64-bit integers natively, so it will
+   * automatically upgrade internal representation to use IEEE 754
+   * double precision float.
+   *
+   * @returns The read number.
+   */
   readS8le() {
     this.ensureBytesLeft(8);
     var v1 = this.readU4le();
@@ -259,9 +284,10 @@ class KaitaiStream {
   // ------------------------------------------------------------------------
 
   /**
-    Reads an 8-bit unsigned int from the stream.
-    @return {number} The read number.
-  */
+   * Reads an 8-bit unsigned int from the stream.
+   *
+   * @returns The read number.
+   */
   readU1() {
     this.ensureBytesLeft(1);
     var v = this._dataView.getUint8(this.pos);
@@ -274,9 +300,10 @@ class KaitaiStream {
   // ........................................................................
 
   /**
-    Reads a 16-bit big-endian unsigned int from the stream.
-    @return {number} The read number.
-  */
+   * Reads a 16-bit big-endian unsigned int from the stream.
+   *
+   * @returns The read number.
+   */
   readU2be() {
     this.ensureBytesLeft(2);
     var v = this._dataView.getUint16(this.pos);
@@ -285,9 +312,10 @@ class KaitaiStream {
   };
 
   /**
-    Reads a 32-bit big-endian unsigned int from the stream.
-    @return {number} The read number.
-  */
+   * Reads a 32-bit big-endian unsigned int from the stream.
+   *
+   * @returns The read number.
+   */
   readU4be() {
     this.ensureBytesLeft(4);
     var v = this._dataView.getUint32(this.pos);
@@ -296,12 +324,13 @@ class KaitaiStream {
   };
 
   /**
-    Reads a 64-bit big-endian unsigned int from the stream. Note that
-    JavaScript does not support 64-bit integers natively, so it will
-    automatically upgrade internal representation to use IEEE 754
-    double precision float.
-    @return {number} The read number.
-  */
+   * Reads a 64-bit big-endian unsigned int from the stream. Note that
+   * JavaScript does not support 64-bit integers natively, so it will
+   * automatically upgrade internal representation to use IEEE 754
+   * double precision float.
+   *
+   * @returns The read number.
+   */
   readU8be() {
     this.ensureBytesLeft(8);
     var v1 = this.readU4be();
@@ -314,9 +343,10 @@ class KaitaiStream {
   // ........................................................................
 
   /**
-    Reads a 16-bit little-endian unsigned int from the stream.
-    @return {number} The read number.
-  */
+   * Reads a 16-bit little-endian unsigned int from the stream.
+   *
+   * @returns The read number.
+   */
   readU2le() {
     this.ensureBytesLeft(2);
     var v = this._dataView.getUint16(this.pos, true);
@@ -325,9 +355,10 @@ class KaitaiStream {
   }
 
   /**
-    Reads a 32-bit little-endian unsigned int from the stream.
-    @return {number} The read number.
-  */
+   * Reads a 32-bit little-endian unsigned int from the stream.
+   *
+   * @returns The read number.
+   */
   readU4le() {
     this.ensureBytesLeft(4);
     var v = this._dataView.getUint32(this.pos, true);
@@ -336,12 +367,13 @@ class KaitaiStream {
   }
 
   /**
-    Reads a 64-bit little-endian unsigned int from the stream. Note that
-    JavaScript does not support 64-bit integers natively, so it will
-    automatically upgrade internal representation to use IEEE 754
-    double precision float.
-    @return {number} The read number.
-  */
+   * Reads a 64-bit little-endian unsigned int from the stream. Note that
+   * JavaScript does not support 64-bit integers natively, so it will
+   * automatically upgrade internal representation to use IEEE 754
+   * double precision float.
+   *
+   * @returns The read number.
+   */
   readU8le() {
     this.ensureBytesLeft(8);
     var v1 = this.readU4le();
@@ -358,6 +390,11 @@ class KaitaiStream {
   // Big endian
   // ------------------------------------------------------------------------
 
+  /**
+   * Reads a 32-bit big-endian float from the stream.
+   *
+   * @returns The read number.
+   */
   readF4be() {
     this.ensureBytesLeft(4);
     var v = this._dataView.getFloat32(this.pos);
@@ -365,6 +402,11 @@ class KaitaiStream {
     return v;
   };
 
+  /**
+   * Reads a 64-bit big-endian float from the stream.
+   *
+   * @returns The read number.
+   */
   readF8be() {
     this.ensureBytesLeft(8);
     var v = this._dataView.getFloat64(this.pos);
@@ -376,6 +418,11 @@ class KaitaiStream {
   // Little endian
   // ------------------------------------------------------------------------
 
+  /**
+   * Reads a 32-bit little-endian float from the stream.
+   *
+   * @returns The read number.
+   */
   readF4le() {
     this.ensureBytesLeft(4);
     var v = this._dataView.getFloat32(this.pos, true);
@@ -383,6 +430,11 @@ class KaitaiStream {
     return v;
   };
 
+  /**
+   * Reads a 64-bit little-endian float from the stream.
+   *
+   * @returns The read number.
+   */
   readF8le() {
     this.ensureBytesLeft(8);
     var v = this._dataView.getFloat64(this.pos, true);
@@ -394,11 +446,19 @@ class KaitaiStream {
   // Unaligned bit values
   // ------------------------------------------------------------------------
 
+  /**
+   * Aligns bit reading to the byte boundry.
+   */
   alignToByte() {
     this.bits = 0;
     this.bitsLeft = 0;
   };
 
+  /**
+   * @param n The number of bits to read.
+   * @returns The read bits.
+   * @throws {Error}
+   */
   readBitsIntBe(n) {
     // JS only supports bit operations on 32 bits
     if (n > 32) {
@@ -432,14 +492,21 @@ class KaitaiStream {
   };
 
   /**
-   * Unused since Kaitai Struct Compiler v0.9+ - compatibility with older versions
+   * Unused since Kaitai Struct Compiler v0.9+ - compatibility with older versions.
    *
-   * @deprecated use {@link readBitsIntBe} instead
+   * @deprecated Use {@link readBitsIntBe} instead.
+   * @param n The number of bits to read.
+   * @returns The read bits.
    */
   readBitsInt(n) {
     return this.readBitsIntBe(n);
   }
 
+  /**
+   * @param n The number of bits to read.
+   * @returns The read bits.
+   * @throws {Error}
+   */
   readBitsIntLe(n) {
     // JS only supports bit operations on 32 bits
     if (n > 32) {
@@ -470,25 +537,40 @@ class KaitaiStream {
   };
 
   /**
-    Native endianness. Either KaitaiStream.BIG_ENDIAN or KaitaiStream.LITTLE_ENDIAN
-    depending on the platform endianness.
-  
-    @type {boolean}
-    */
+   * Native endianness. Either KaitaiStream.BIG_ENDIAN or KaitaiStream.LITTLE_ENDIAN
+   * depending on the platform endianness.
+   */
   static endianness = new Int8Array(new Int16Array([1]).buffer)[0] > 0;
 
   // ========================================================================
   // Byte arrays
   // ========================================================================
 
+  /**
+   * @param len The number of bytes to read.
+   * @returns The read bytes.
+   */
   readBytes(len) {
     return this.mapUint8Array(len);
   };
 
+  /**
+   * @returns The read bytes.
+   */
   readBytesFull() {
     return this.mapUint8Array(this.size - this.pos);
   };
 
+  /**
+   * Reads bytes until the terminator byte is found.
+   *
+   * @param terminator The terminator byte.
+   * @param include True if the terminator should be included with the returned bytes.
+   * @param consume True if the terminator should be consumed from the input stream.
+   * @param eosError True to throw an error if the end of stream is reached.
+   * @returns The read bytes.
+   * @throws {string}
+   */
   readBytesTerm(terminator, include, consume, eosError) {
     var blen = this.size - this.pos;
     var u8 = new Uint8Array(this._buffer, this._byteOffset + this.pos);
@@ -514,7 +596,13 @@ class KaitaiStream {
     }
   };
 
-  // Unused since Kaitai Struct Compiler v0.9+ - compatibility with older versions
+  /**
+   * Unused since Kaitai Struct Compiler v0.9+ - compatibility with older versions.
+   * 
+   * @param expected The expected bytes.
+   * @returns The read bytes.
+   * @throws {KaitaiStream.UnexpectedDataError}
+   */
   ensureFixedContents(expected) {
     var actual = this.readBytes(expected.length);
     if (actual.length !== expected.length) {
@@ -529,6 +617,11 @@ class KaitaiStream {
     return actual;
   };
 
+  /**
+   * @param data The data.
+   * @param padByte The byte to strip.
+   * @returns The stripped data.
+   */
   static bytesStripRight(data, padByte) {
     var newLen = data.length;
     while (data[newLen - 1] === padByte) {
@@ -537,6 +630,12 @@ class KaitaiStream {
     return data.slice(0, newLen);
   };
 
+  /**
+   * @param data The data.
+   * @param term The terminator.
+   * @param include True if the returned bytes should include the terminator.
+   * @returns The terminated bytes.
+   */
   static bytesTerminate(data, term, include) {
     var newLen = 0;
     var maxLen = data.length;
@@ -548,6 +647,11 @@ class KaitaiStream {
     return data.slice(0, newLen);
   };
 
+  /**
+   * @param arr The bytes.
+   * @param encoding The character encoding.
+   * @returns The decoded string.
+   */
   static bytesToStr(arr, encoding) {
     if (encoding == null || encoding.toLowerCase() === "ascii") {
       return KaitaiStream.createStringFromArray(arr);
@@ -584,6 +688,11 @@ class KaitaiStream {
   // Byte array processing
   // ========================================================================
 
+  /**
+   * @param data The input bytes.
+   * @param key The key byte.
+   * @returns The Xor'd bytes.
+   */
   static processXorOne(data, key) {
     var r = new Uint8Array(data.length);
     var dl = data.length;
@@ -592,6 +701,11 @@ class KaitaiStream {
     return r;
   };
 
+  /**
+   * @param data The input bytes.
+   * @param key The key bytes.
+   * @returns The Xor'd bytes.
+   */
   static processXorMany(data, key) {
     var dl = data.length;
     var r = new Uint8Array(dl);
@@ -606,6 +720,13 @@ class KaitaiStream {
     return r;
   };
 
+  /**
+   * @param data The input bytes.
+   * @param amount The number of bytes to rotate.
+   * @param groupSize The number of bytes in each group.
+   * @returns The rotated bytes.
+   * @throws {string}
+   */
   static processRotateLeft(data, amount, groupSize) {
     if (groupSize !== 1)
       throw ("unable to rotate group of " + groupSize + " bytes yet");
@@ -620,6 +741,10 @@ class KaitaiStream {
     return r;
   };
 
+  /**
+   * @param buf The input bytes.
+   * @returns The uncompressed bytes.
+   */
   static processZlib(buf) {
     if (typeof require !== 'undefined') {
       // require is available - we're running under node
@@ -649,6 +774,12 @@ class KaitaiStream {
   // Misc runtime operations
   // ========================================================================
 
+  /**
+   * @param a The dividend.
+   * @param b The divisor.
+   * @returns The result of `a` mod `b`.
+   * @throws {string}
+   */
   static mod(a, b) {
     if (b <= 0)
       throw "mod divisor <= 0";
@@ -658,6 +789,12 @@ class KaitaiStream {
     return r;
   };
 
+  /**
+   * Gets the smallest value in an array.
+   *
+   * @param arr The input array.
+   * @returns The smallest value.
+   */
   static arrayMin(arr) {
     var min = arr[0];
     var x;
@@ -668,6 +805,12 @@ class KaitaiStream {
     return min;
   };
 
+  /**
+   * Gets the largest value in an array.
+   *
+   * @param arr The input array.
+   * @returns The largest value.
+   */
   static arrayMax(arr) {
     var max = arr[0];
     var x;
@@ -678,6 +821,13 @@ class KaitaiStream {
     return max;
   };
 
+  /**
+   * Compares two arrays of bytes from left to right.
+   *
+   * @param a The first array.
+   * @param b The second array.
+   * @returns `0` if the arrays are the equal, a positive number if `a` is greater than `b`, or a negative number if `a` is less than `b`.
+   */
   static byteArrayCompare(a, b) {
     if (a === b)
       return 0;
@@ -706,6 +856,10 @@ class KaitaiStream {
     bytesReq: number;
     bytesAvail: number;
 
+    /**
+     * @param bytesReq The number of bytes requested.
+     * @param bytesAvail The number of bytes available.
+     */
     constructor(bytesReq, bytesAvail) {
       super();
       // Workaround https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
@@ -717,11 +871,17 @@ class KaitaiStream {
     }
   }
 
-  // Unused since Kaitai Struct Compiler v0.9+ - compatibility with older versions
+  /**
+   * Unused since Kaitai Struct Compiler v0.9+ - compatibility with older versions.
+   */
   static UnexpectedDataError = class extends Error {
     expected: any;
     actual: any;
 
+    /**
+     * @param expected The expected value.
+     * @param actual The actual value.
+     */
     constructor(expected, actual) {
       super();
       // Workaround https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
@@ -746,6 +906,10 @@ class KaitaiStream {
     expected: any;
     actual: any;
 
+    /**
+     * @param expected The expected value.
+     * @param actual The actual value.
+     */
     constructor(expected, actual) {
       super();
       // Workaround https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
@@ -761,6 +925,10 @@ class KaitaiStream {
     min: any;
     actual: any;
 
+    /**
+     * @param min The minimum allowed value.
+     * @param actual The actual value.
+     */
     constructor(min, actual) {
       super();
       // Workaround https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
@@ -776,6 +944,10 @@ class KaitaiStream {
     max: any;
     actual: any;
 
+    /**
+     * @param max The maximum allowed value.
+     * @param actual The actual value.
+     */
     constructor(max, actual) {
       super();
       // Workaround https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
@@ -790,7 +962,10 @@ class KaitaiStream {
   static ValidationNotAnyOfError = class extends Error {
     actual: any;
 
-    constructor(actual, io, srcPath) {
+    /**
+     * @param actual The actual value.
+     */
+    constructor(actual) {
       super();
       // Workaround https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
       Object.setPrototypeOf(this, KaitaiStream.ValidationNotAnyOfError.prototype);
@@ -803,7 +978,10 @@ class KaitaiStream {
   static ValidationExprError = class extends Error {
     actual: any;
 
-    constructor(actual, io, srcPath) {
+    /**
+     * @param actual The actual value.
+     */
+    constructor(actual) {
       super();
       // Workaround https://github.com/Microsoft/TypeScript/wiki/Breaking-Changes#extending-built-ins-like-error-array-and-map-may-no-longer-work
       Object.setPrototypeOf(this, KaitaiStream.ValidationExprError.prototype);
@@ -814,11 +992,12 @@ class KaitaiStream {
   };
 
   /**
-    Ensures that we have an least `length` bytes left in the stream.
-    If that's not true, throws an EOFError.
-
-    @param {number} length Number of bytes to require
-    */
+   * Ensures that we have an least `length` bytes left in the stream.
+   * If that's not true, throws an EOFError.
+   *
+   * @param length Number of bytes to require.
+   * @throws {KaitaiStream.EOFError}
+   */
   ensureBytesLeft(length) {
     if (this.pos + length > this.size) {
       throw new KaitaiStream.EOFError(length, this.size - this.pos);
@@ -826,13 +1005,12 @@ class KaitaiStream {
   };
 
   /**
-    Maps a Uint8Array into the KaitaiStream buffer.
-  
-    Nice for quickly reading in data.
-  
-    @param {number} length Number of elements to map.
-    @return {Object} Uint8Array to the KaitaiStream backing buffer.
-    */
+   * Maps a Uint8Array into the KaitaiStream buffer.
+   * Nice for quickly reading in data.
+   *
+   * @param length Number of elements to map.
+   * @returns A Uint8Array to the KaitaiStream backing buffer.
+   */
   mapUint8Array(length) {
     length |= 0;
 
@@ -844,13 +1022,13 @@ class KaitaiStream {
   };
 
   /**
-    Creates an array from an array of character codes.
-    Uses String.fromCharCode in chunks for memory efficiency and then concatenates
-    the resulting string chunks.
-  
-    @param {array|Uint8Array} array Array of character codes.
-    @return {string} String created from the character codes.
-    */
+   * Creates an array from an array of character codes.
+   * Uses String.fromCharCode in chunks for memory efficiency and then concatenates
+   * the resulting string chunks.
+   *
+   * @param array Array of character codes.
+   * @returns String created from the character codes.
+   */
   static createStringFromArray = function (array) {
     var chunk_size = 0x8000;
     var chunks = [];
