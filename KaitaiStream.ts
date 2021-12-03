@@ -94,7 +94,7 @@ class KaitaiStream {
    * Sets the backing ArrayBuffer of the KaitaiStream object and updates the
    * DataView to point to the new buffer.
    */
-  public set buffer(v) {
+  public set buffer(v: ArrayBuffer) {
     this._buffer = v;
     this._dataView = new DataView(this._buffer, this._byteOffset);
     this._byteLength = this._buffer.byteLength;
@@ -113,7 +113,7 @@ class KaitaiStream {
    * Sets the byteOffset of the KaitaiStream object and updates the DataView to
    * point to the new byteOffset.
    */
-  public set byteOffset(v) {
+  public set byteOffset(v: number) {
     this._byteOffset = v;
     this._dataView = new DataView(this._buffer, this._byteOffset);
     this._byteLength = this._buffer.byteLength;
@@ -131,7 +131,7 @@ class KaitaiStream {
    * Sets the backing DataView of the KaitaiStream object and updates the buffer
    * and byteOffset to point to the DataView values.
    */
-  public set dataView(v) {
+  public set dataView(v: DataView) {
     this._byteOffset = v.byteOffset;
     this._buffer = v.buffer;
     this._dataView = new DataView(this._buffer, this._byteOffset);
@@ -154,7 +154,6 @@ class KaitaiStream {
     dst.set(src);
     this.buffer = buf;
   }
-
 
   // ========================================================================
   // Stream positioning
@@ -410,7 +409,6 @@ class KaitaiStream {
     return 0x100000000 * v2 + v1;
   }
 
-
   // ========================================================================
   // Floating point numbers
   // ========================================================================
@@ -569,7 +567,7 @@ class KaitaiStream {
    * Native endianness. Either KaitaiStream.BIG_ENDIAN or KaitaiStream.LITTLE_ENDIAN
    * depending on the platform endianness.
    */
-  public static endianness = new Int8Array(new Int16Array([1]).buffer)[0] > 0;
+  public static endianness: boolean = new Int8Array(new Int16Array([1]).buffer)[0] > 0;
 
   // ========================================================================
   // Byte arrays
