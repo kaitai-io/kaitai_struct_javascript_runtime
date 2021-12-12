@@ -22,6 +22,9 @@
   "devDependencies": {
     "jest": "^29.7.0"
   },
+  "engines": {
+    "node": ">=6.0.0"
+  },
   "keywords": [
     "binary",
     "file",
