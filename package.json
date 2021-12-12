@@ -16,6 +16,12 @@
   "files": [
     "KaitaiStream.js"
   ],
+  "scripts": {
+    "test": "jest"
+  },
+  "devDependencies": {
+    "jest": "^28.1.3"
+  },
   "keywords": [
     "binary",
     "file",
