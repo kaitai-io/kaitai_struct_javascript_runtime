@@ -537,36 +537,28 @@ KaitaiStream.endianness = new Int8Array(new Int16Array([1]).buffer)[0] > 0;
 // ========================================================================
 
 KaitaiStream.prototype.readBytes = function(len) {
-  return this.mapUint8Array(len);
+  return this.mapUint8Array(len, len);
 };
 
 KaitaiStream.prototype.readBytesFull = function() {
-  return this.mapUint8Array(this.size - this.pos);
+  return this.readBytes(this.size - this.pos);
 };
 
 KaitaiStream.prototype.readBytesTerm = function(terminator, include, consume, eosError) {
-  var blen = this.size - this.pos;
-  var u8 = new Uint8Array(this._buffer, this._byteOffset + this.pos);
-  for (var i = 0; i < blen && u8[i] !== terminator; i++); // find first zero byte
-  if (i === blen) {
+  var len = this.size - this.pos;
+  var u8 = new Uint8Array(this._buffer, this._byteOffset + this.pos, len);
+  var i = u8.findIndex(function(value) { return value === terminator; });
+  if (i < 0) {
     // we've read all the buffer and haven't found the terminator
     if (eosError) {
       throw "End of stream reached, but no terminator " + terminator + " found";
-    } else {
-      return this.mapUint8Array(i);
     }
-  } else {
-    var arr;
-    if (include) {
-      arr = this.mapUint8Array(i + 1);
-    } else {
-      arr = this.mapUint8Array(i);
-    }
-    if (consume) {
-      this.pos += 1;
-    }
-    return arr;
+    return this.readBytes(len);
   }
+  return this.mapUint8Array(
+    include ? i + 1 : i,
+    consume ? i + 1 : i
+  );
 };
 
 // Unused since Kaitai Struct Compiler v0.9+ - compatibility with older versions
@@ -859,15 +851,17 @@ KaitaiStream.prototype.ensureBytesLeft = function(length) {
   Nice for quickly reading in data.
 
   @param {number} length Number of elements to map.
+  @param {number} [consume=length] Number of elements to consume (default to `length`).
   @return {Object} Uint8Array to the KaitaiStream backing buffer.
   */
-KaitaiStream.prototype.mapUint8Array = function(length) {
+KaitaiStream.prototype.mapUint8Array = function(length, consume = length) {
   length |= 0;
+  consume |= 0;
 
   this.ensureBytesLeft(length);
 
   var arr = new Uint8Array(this._buffer, this.byteOffset + this.pos, length);
-  this.pos += length;
+  this.pos += consume;
   return arr;
 };
 
