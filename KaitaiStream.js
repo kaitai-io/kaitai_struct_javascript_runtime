@@ -622,8 +622,7 @@ KaitaiStream.bytesToStr = function(arr, encoding) {
         case 'ucs-2':
         case 'utf16le':
         case 'utf-16le':
-          return new Buffer(arr).toString(encoding);
-          break;
+          return Buffer.from(arr).toString(encoding);
         default:
           // unsupported encoding, we'll have to resort to iconv-lite
           if (typeof KaitaiStream.iconvlite === 'undefined')
