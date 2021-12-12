@@ -221,7 +221,7 @@ KaitaiStream.prototype.readS8be = function() {
   if ((v1 & 0x80000000) !== 0) {
     var p1 = v1 ^ 0xffffffff;
     var p2 = v2 ^ 0xffffffff;
-    var p3 = 0x100000000 * p1 + p2;
+    var p3 = 0x100000000 * (p1 + 1) + p2;
 
     // negative number
     return -p3 - 1;
@@ -271,7 +271,7 @@ KaitaiStream.prototype.readS8le = function() {
   if ((v2 & 0x80000000) !== 0) {
     var p1 = v1 ^ 0xffffffff;
     var p2 = v2 ^ 0xffffffff;
-    var p3 = 0x100000000 * p2 + p1;
+    var p3 = 0x100000000 * (p2 + 1) + p1;
 
     // negative number
     return -p3 - 1;
