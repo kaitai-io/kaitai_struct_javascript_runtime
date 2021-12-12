@@ -219,8 +219,12 @@ KaitaiStream.prototype.readS8be = function() {
   var v2 = this.readU4be();
 
   if ((v1 & 0x80000000) !== 0) {
+    var p1 = v1 ^ 0xffffffff;
+    var p2 = v2 ^ 0xffffffff;
+    var p3 = 0x100000000 * p1 + p2;
+
     // negative number
-    return -(0x100000000 * (v1 ^ 0xffffffff) + (v2 ^ 0xffffffff)) - 1;
+    return -p3 - 1;
   } else {
     return 0x100000000 * v1 + v2;
   }
@@ -265,8 +269,12 @@ KaitaiStream.prototype.readS8le = function() {
   var v2 = this.readU4le();
 
   if ((v2 & 0x80000000) !== 0) {
+    var p1 = v1 ^ 0xffffffff;
+    var p2 = v2 ^ 0xffffffff;
+    var p3 = 0x100000000 * p2 + p1;
+
     // negative number
-    return -(0x100000000 * (v2 ^ 0xffffffff) + (v1 ^ 0xffffffff)) - 1;
+    return -p3 - 1;
   } else {
     return 0x100000000 * v2 + v1;
   }
