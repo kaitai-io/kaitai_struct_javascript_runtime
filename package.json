@@ -2,29 +2,29 @@
   "name": "kaitai-struct",
   "version": "0.10.0-SNAPSHOT.2",
   "description": "Kaitai Struct: runtime library for Javascript",
-  "main": "index.js",
+  "license": "Apache-2.0",
+  "author": "Kaitai team (https://github.com/orgs/kaitai-io/people) and Ilmari Heikkinen",
+  "homepage": "https://github.com/kaitai-io/kaitai_struct_javascript_runtime#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kaitai-io/kaitai_struct_javascript_runtime.git"
+    "url": "https://github.com/kaitai-io/kaitai_struct_javascript_runtime.git"
   },
-  "keywords": [
-    "kaitai",
-    "binary",
-    "parsing",
-    "struct",
-    "stream",
-    "runtime",
-    "file",
-    "format",
-    "structure",
-    "forenics",
-    "reversing",
-    "reverse engineering"
-  ],
-  "author": "Kaitai team (https://github.com/orgs/kaitai-io/people) and Ilmari Heikkinen",
-  "license": "Apache-2.0",
   "bugs": {
     "url": "https://github.com/kaitai-io/kaitai_struct_javascript_runtime/issues"
   },
-  "homepage": "https://github.com/kaitai-io/kaitai_struct_javascript_runtime#readme"
+  "main": "index.js",
+  "keywords": [
+    "binary",
+    "file",
+    "forenics",
+    "format",
+    "kaitai",
+    "parsing",
+    "reverse engineering",
+    "reversing",
+    "runtime",
+    "stream",
+    "struct",
+    "structure"
+  ]
 }
