@@ -1,7 +1,7 @@
 {
   "name": "kaitai-struct",
   "version": "0.10.0-SNAPSHOT.2",
-  "description": "Kaitai Struct: runtime library for Javascript",
+  "description": "Kaitai Struct: runtime library for JavaScript",
   "license": "Apache-2.0",
   "author": "Kaitai team (https://github.com/orgs/kaitai-io/people) and Ilmari Heikkinen",
   "homepage": "https://github.com/kaitai-io/kaitai_struct_javascript_runtime#readme",
