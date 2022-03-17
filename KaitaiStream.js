@@ -428,7 +428,7 @@ KaitaiStream.prototype.alignToByte = function() {
 KaitaiStream.prototype.readBitsIntBe = function(n) {
   // JS only supports bit operations on 32 bits
   if (n > 32) {
-    throw new Error("readBitsIntBe: the maximum supported bit length is 32 (tried to read " + n + " bits)");
+    throw new RangeError("readBitsIntBe: the maximum supported bit length is 32 (tried to read " + n + " bits)");
   }
   var res = 0;
 
@@ -486,7 +486,7 @@ KaitaiStream.prototype.readBitsInt = KaitaiStream.prototype.readBitsIntBe;
 KaitaiStream.prototype.readBitsIntLe = function(n) {
   // JS only supports bit operations on 32 bits
   if (n > 32) {
-    throw new Error("readBitsIntLe: the maximum supported bit length is 32 (tried to read " + n + " bits)");
+    throw new RangeError("readBitsIntLe: the maximum supported bit length is 32 (tried to read " + n + " bits)");
   }
   var res = 0;
   var bitsNeeded = n - this.bitsLeft;
