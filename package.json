@@ -13,6 +13,9 @@
     "url": "https://github.com/kaitai-io/kaitai_struct_javascript_runtime/issues"
   },
   "main": "index.js",
+  "files": [
+    "KaitaiStream.js"
+  ],
   "keywords": [
     "binary",
     "file",
