@@ -8,7 +8,7 @@
   } else {
     root.KaitaiStream = factory();
   }
-}(this, function () {
+}(typeof self !== 'undefined' ? self : this, function () {
 
 /**
   KaitaiStream is an implementation of Kaitai Struct API for JavaScript.
