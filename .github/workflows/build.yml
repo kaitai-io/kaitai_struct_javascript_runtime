@@ -3,7 +3,7 @@ name: npm build
 on:
   push:
     tags:
-      - '0.[0-9]+.[0-9]+-SNAPSHOT.[0-9]+'
+      - "0.[0-9]+.[0-9]+-SNAPSHOT.[0-9]+"
 
 jobs:
   publish-npm:
@@ -12,7 +12,7 @@ jobs:
       - uses: actions/checkout@v3
       - uses: actions/setup-node@v3
         with:
-          node-version: '16'
+          node-version: "16"
           registry-url: https://registry.npmjs.org/
       - run: npm ci
       - name: Publish to npm

@@ -4,7 +4,11 @@
   "description": "Kaitai Struct: runtime library for JavaScript",
   "license": "Apache-2.0",
   "author": "Kaitai team (https://github.com/orgs/kaitai-io/people) and Ilmari Heikkinen",
+  "contributors": [
+    "Thea Schöbl <dev@theaninova.de>"
+  ],
   "homepage": "https://github.com/kaitai-io/kaitai_struct_javascript_runtime#readme",
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "https://github.com/kaitai-io/kaitai_struct_javascript_runtime.git"
@@ -12,10 +16,46 @@
   "bugs": {
     "url": "https://github.com/kaitai-io/kaitai_struct_javascript_runtime/issues"
   },
-  "main": "index.js",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "require": "./dist/index.cjs",
+      "default": "./dist/index.mjs"
+    }
+  },
   "files": [
-    "KaitaiStream.js"
+    "dist/*"
   ],
+  "scripts": {
+    "build": "rimraf dist && rollup -c",
+    "test": "jest",
+    "format": "prettier . --write"
+  },
+  "dependencies": {
+    "pako": "^2.1.0"
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.4.3",
+    "@rollup/plugin-node-resolve": "^15.0.1",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@types/jest": "^29.4.0",
+    "@types/pako": "^2.0.0",
+    "jest": "^29.4.3",
+    "prettier": "^2.8.4",
+    "rimraf": "^4.1.2",
+    "rollup": "^3.15.0",
+    "rollup-plugin-dts": "^5.2.0",
+    "rollup-plugin-esbuild": "^5.0.0",
+    "ts-jest": "^29.0.5",
+    "ts-loader": "^9.4.2",
+    "ts-node": "^10.9.1",
+    "tslib": "^2.5.0",
+    "typescript": "^4.9.5",
+    "webpack": "^5.75.0",
+    "webpack-cli": "^5.0.1"
+  },
   "keywords": [
     "binary",
     "file",

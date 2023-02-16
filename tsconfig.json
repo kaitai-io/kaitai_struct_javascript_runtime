@@ -1,0 +1,18 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "outDir": "dist",
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "allowJs": true,
+    "stripInternal": true,
+    "isolatedModules": true,
+    "importsNotUsedAsValues": "error",
+    "sourceMap": true,
+    "pretty": true
+  },
+  "include": ["src/**/*.ts", "jest.config.ts", "test/**/*.ts"]
+}
