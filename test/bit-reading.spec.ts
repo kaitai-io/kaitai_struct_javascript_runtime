@@ -21,6 +21,12 @@ describe("bit reader", function () {
         const stream = new KaitaiStream(new Uint8Array(8))
         expect(() => stream[functionName](33)).toThrow(RangeError)
       })
+
+      it("should discard unneeded bits", function () {
+        const stream = new KaitaiStream(new Uint8Array([0b0100_0010]))
+        stream[functionName](1)
+        expect(stream[functionName](1)).toStrictEqual(1)
+      })
     })
   }
 })

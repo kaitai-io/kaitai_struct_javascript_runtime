@@ -15,10 +15,7 @@ export function BitOpsProcessor<TBase extends Constructor>(Base: TBase) {
     processRotateLeft(data: Uint8Array, amount: number, groupSize: number) {
       if (groupSize !== 1) throw new NotImplementedError(`Group size != 1`)
 
-      const mask = groupSize * 8 - 1
-      const antiAmount = -amount & mask
-
-      return data.map(it => ((it << amount) & 0xff) | (it >> antiAmount))
+      return data.map(it => ((it & 0xff) << amount) | ((it & 0xff) >>> (8 - amount)))
     }
   }
 }

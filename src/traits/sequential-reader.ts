@@ -17,7 +17,7 @@ export function SequentialReader<TBase extends Constructor<DataViewDelegateType>
     endianness = nativeEndianness()
 
     size() {
-      return this.byteLength - this.byteOffset
+      return this.byteLength
     }
 
     eof() {

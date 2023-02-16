@@ -70,4 +70,14 @@ describe("stream positioning", function () {
       expect(stream.readU8le).toThrowError(EOFError)
     })
   })
+
+  describe("alignToByte", function () {
+    it("should discard remaining bits", function () {
+      const stream = new KaitaiStream(new Uint8Array([0]))
+      stream.readBitsIntBe(1)
+      expect(stream.eof()).toStrictEqual(false)
+      stream.alignToByte()
+      expect(stream.eof()).toStrictEqual(true)
+    })
+  })
 })
