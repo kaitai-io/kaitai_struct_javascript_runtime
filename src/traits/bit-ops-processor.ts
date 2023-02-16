@@ -1,8 +1,9 @@
 import {Constructor} from "../util/mixin"
 import {NotImplementedError} from "../errors/not-implemented-error"
+import {KaitaiStreamBitopsProcessingApi} from "../kaitai-api"
 
 export function BitOpsProcessor<TBase extends Constructor>(Base: TBase) {
-  return class BitOpsProcessor extends Base {
+  return class BitOpsProcessor extends Base implements KaitaiStreamBitopsProcessingApi {
     processXorOne(data: Uint8Array, key: number) {
       return data.map(it => it ^ key)
     }

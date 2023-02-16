@@ -12,9 +12,9 @@ formats, network stream packet formats, etc.
 
 Further reading:
 
-* [About Kaitai Struct](http://kaitai.io/)
-* [About API implemented in this library](http://doc.kaitai.io/stream_api.html)
-* [JavaScript-specific notes](http://doc.kaitai.io/lang_javascript.html) - also includes Quick start guide
+- [About Kaitai Struct](http://kaitai.io/)
+- [About API implemented in this library](http://doc.kaitai.io/stream_api.html)
+- [JavaScript-specific notes](http://doc.kaitai.io/lang_javascript.html) - also includes Quick start guide
 
 ## Usage
 
@@ -25,16 +25,16 @@ npm i kaitai-struct
 ```
 
 ```ts
-import KaitaiStream from 'kaitai-stream'
+import KaitaiStream from "kaitai-stream"
 ```
+
 Or
+
 ```js
-const KaitaiStream = require('kaitai-stream')
+const KaitaiStream = require("kaitai-stream")
 ```
 
 ### Browser
-
-
 
 ## Licensing
 

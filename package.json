@@ -23,7 +23,8 @@
     }
   },
   "scripts": {
-    "build": "rimraf dist && rollup -c"
+    "build": "rimraf dist && rollup -c",
+    "format": "prettier . --write"
   },
   "dependencies": {
     "pako": "^2.1.0"

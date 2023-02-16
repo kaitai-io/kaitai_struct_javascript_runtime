@@ -27,9 +27,5 @@ export function DataViewDelegate<TBase extends Constructor<{dataView: DataView}>
     set byteLength(value: number) {
       this.dataView = new DataView(this.buffer, this.byteOffset, value)
     }
-
-    get size() {
-      return this.byteLength - this.byteOffset
-    }
   }
 }
