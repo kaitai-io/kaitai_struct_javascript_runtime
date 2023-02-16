@@ -36,6 +36,11 @@ const KaitaiStream = require("kaitai-stream")
 
 ### Browser
 
+Include either `kaitai-stream.bundle.js` or `kaitai-stream-zlib.bundle.js`
+depending on if you need zlib or not. You can also include the bundle
+without zlib and provide pako to it by defining a global variable
+"`pako`" [(get it here)](https://www.npmjs.com/package/pako)
+
 ## Licensing
 
 Copyright 2012-2016 Ilmari Heikkinen\

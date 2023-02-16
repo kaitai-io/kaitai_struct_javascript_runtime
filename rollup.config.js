@@ -29,11 +29,22 @@ export default [
     ],
   }),
   bundle({
-    plugins: [resolve(), esbuild()],
+    plugins: [resolve(), esbuild({minify: true})],
     external: () => false,
     output: [
       {
+        file: `${name}-zlib.bundle.js`,
+        name: "KaitaiStream",
+        format: "iife",
+      },
+    ],
+  }),
+  bundle({
+    plugins: [resolve(), esbuild({minify: true})],
+    output: [
+      {
         file: `${name}.bundle.js`,
+        globals: {pako: "pako"},
         name: "KaitaiStream",
         format: "iife",
       },

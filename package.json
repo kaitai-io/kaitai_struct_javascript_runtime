@@ -4,6 +4,9 @@
   "description": "Kaitai Struct: runtime library for JavaScript",
   "license": "Apache-2.0",
   "author": "Kaitai team (https://github.com/orgs/kaitai-io/people) and Ilmari Heikkinen",
+  "contributors": [
+    "Thea Schöbl <dev@theaninova.de>"
+  ],
   "homepage": "https://github.com/kaitai-io/kaitai_struct_javascript_runtime#readme",
   "type": "module",
   "repository": {
