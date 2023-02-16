@@ -1,8 +1,8 @@
-import {Constructor} from "../util/mixin"
-import {DataViewDelegateType} from "./data-view-delegate"
+import type {Constructor} from "../util/mixin"
+import type {DataViewDelegateType} from "./data-view-delegate"
 import {EOFError} from "../errors/eor-error"
 import {nativeEndianness} from "../util/endian"
-import {KaitaiStreamPositioningApi} from "../kaitai-api"
+import type {KaitaiStreamPositioningApi} from "../kaitai-api"
 
 export type SequentialReaderType = InstanceType<ReturnType<typeof SequentialReader>>
 
@@ -29,8 +29,8 @@ export function SequentialReader<TBase extends Constructor<DataViewDelegateType>
     }
 
     ensureBytesLeft(bytes: number) {
-      if (this.position + length > this.size()) {
-        throw new EOFError(length, this.size() - this.position)
+      if (this.position + bytes > this.size()) {
+        throw new EOFError(bytes, this.size() - this.position)
       }
     }
 
@@ -41,8 +41,8 @@ export function SequentialReader<TBase extends Constructor<DataViewDelegateType>
      * @param position The new position
      */
     seek(position: number) {
-      const newPosition = Math.max(0, Math.min(this.size(), position))
-      this.position = Number.isNaN(newPosition) || !Number.isFinite(newPosition) ? 0 : newPosition
+      const newPosition = Math.max(0, Math.min(this.size() - 1, position))
+      this.position = newPosition || 0
     }
 
     alignToByte() {

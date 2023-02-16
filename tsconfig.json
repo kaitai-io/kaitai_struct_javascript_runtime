@@ -4,9 +4,14 @@
     "outDir": "dist",
     "target": "ESNext",
     "module": "ESNext",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
     "skipLibCheck": true,
+    "stripInternal": true,
+    "isolatedModules": true,
+    "importsNotUsedAsValues": "error",
     "sourceMap": true,
     "pretty": true
   },
-  "include": ["src/**/*.ts"]
+  "include": ["src/**/*.ts", "jest.config.ts", "test/**/*.ts"]
 }

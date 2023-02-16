@@ -1,4 +1,4 @@
-import {Constructor} from "../util/mixin"
+import type {Constructor} from "../util/mixin"
 
 export type DataViewDelegateType = InstanceType<ReturnType<typeof DataViewDelegate>>
 

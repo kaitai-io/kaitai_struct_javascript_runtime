@@ -1,5 +1,6 @@
-import {NumberReader} from "./traits/number-reader"
+import type {Constructor} from "./util/mixin"
 
+import {NumberReader} from "./traits/number-reader"
 import {DataViewDelegate} from "./traits/data-view-delegate"
 import {KaitaiStreamBase} from "./kaitai-stream-base"
 import {SequentialReader} from "./traits/sequential-reader"
@@ -9,8 +10,8 @@ import {BitReader} from "./traits/bit-reader"
 import {ZlibProcessor} from "./traits/zlib-processor"
 import {BitOpsProcessor} from "./traits/bit-ops-processor"
 import {StringReader} from "./traits/string-reader"
-import type {KaitaiStreamApi, KaitaiStreamPositioningApi, KaitaiStreamReadingApi} from "./kaitai-api"
-import {Constructor} from "./util/mixin"
+
+import type {KaitaiStreamApi, KaitaiStreamPositioningApi, KaitaiStreamReadingApi} from "./kaitai-api.js"
 
 const DataStream = SequentialReader(
   DataViewDelegate(KaitaiStreamBase),

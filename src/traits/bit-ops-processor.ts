@@ -1,6 +1,6 @@
-import {Constructor} from "../util/mixin"
+import type {Constructor} from "../util/mixin"
 import {NotImplementedError} from "../errors/not-implemented-error"
-import {KaitaiStreamBitopsProcessingApi} from "../kaitai-api"
+import type {KaitaiStreamBitopsProcessingApi} from "../kaitai-api"
 
 export function BitOpsProcessor<TBase extends Constructor>(Base: TBase) {
   return class BitOpsProcessor extends Base implements KaitaiStreamBitopsProcessingApi {

@@ -1,8 +1,8 @@
-import {Constructor} from "../util/mixin"
-import {DataViewDelegateType} from "./data-view-delegate"
-import {SequentialReaderType} from "./sequential-reader"
-import {ArrayReaderType} from "./array-reader"
-import {KaitaiStreamByteArrayReadingApi} from "../kaitai-api"
+import type {Constructor} from "../util/mixin"
+import type {DataViewDelegateType} from "./data-view-delegate"
+import type {SequentialReaderType} from "./sequential-reader"
+import type {ArrayReaderType} from "./array-reader"
+import type {KaitaiStreamByteArrayReadingApi} from "../kaitai-api"
 
 export type ByteReaderType = InstanceType<ReturnType<typeof ByteReader>>
 

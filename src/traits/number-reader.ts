@@ -1,13 +1,21 @@
-import {BitsToBytesType, DataViewBitTypes, DataViewReadFunction, DataViewReadTypes} from "../util/data-view"
+import type {
+  BitsToBytesType,
+  DataViewBitTypes,
+  DataViewReadFunction,
+  DataViewReadTypes,
+} from "../util/data-view"
 import {convertFloat16} from "../util/float-16"
 import type {Constructor} from "../util/mixin"
-import {SequentialReaderType} from "./sequential-reader"
-import {KaitaiStreamIntegerReadingApi} from "../kaitai-api"
+import type {SequentialReaderType} from "./sequential-reader"
+import type {KaitaiStreamIntegerReadingApi} from "../kaitai-api"
 
 export type NumberReaderType = InstanceType<ReturnType<typeof NumberReader>>
 
 export function NumberReader<TBase extends Constructor<SequentialReaderType>>(Base: TBase) {
   return class NumberReader extends Base implements KaitaiStreamIntegerReadingApi {
+    /**
+     * @internal
+     */
     readNumber<T extends DataViewReadTypes, S extends DataViewBitTypes<T>>(
       type: T,
       bits: S,
@@ -17,11 +25,12 @@ export function NumberReader<TBase extends Constructor<SequentialReaderType>>(Ba
       const functionName = `get${type}${bits}` as DataViewReadFunction<T, S>
       return function (this: NumberReader) {
         this.ensureBytesLeft(bytes)
-        this.position += bytes
-
-        return this.dataView[functionName](this.position, littleEndian) as ReturnType<
+        const data = this.dataView[functionName](this.position, littleEndian) as ReturnType<
           DataView[DataViewReadFunction<T, S>]
         >
+        this.position += bytes
+
+        return data
       }.bind(this)
     }
 
@@ -30,13 +39,13 @@ export function NumberReader<TBase extends Constructor<SequentialReaderType>>(Ba
     readS4be = this.readNumber("Int", 32, 4)
     readS8be = this.readNumber("BigInt", 64, 8)
 
-    readU1 = this.readNumber("Int", 8, 1)
+    readU1 = this.readNumber("Uint", 8, 1)
     readU2be = this.readNumber("Uint", 16, 2)
     readU4be = this.readNumber("Uint", 32, 4)
     readU8be = this.readNumber("BigUint", 64, 8)
 
     readF2be() {
-      return convertFloat16(this.readU1())
+      return convertFloat16(this.readU2be())
     }
 
     readF4be = this.readNumber("Float", 32, 4)
@@ -51,7 +60,7 @@ export function NumberReader<TBase extends Constructor<SequentialReaderType>>(Ba
     readU8le = this.readNumber("BigUint", 64, 8, true)
 
     readF2le() {
-      return convertFloat16(this.readU1())
+      return convertFloat16(this.readU2le())
     }
 
     readF4le = this.readNumber("Float", 32, 4, true)

@@ -1,6 +1,6 @@
-import {Constructor} from "../util/mixin"
-import {DataViewDelegateType} from "./data-view-delegate"
-import {SequentialReaderType} from "./sequential-reader"
+import type {Constructor} from "../util/mixin"
+import type {DataViewDelegateType} from "./data-view-delegate"
+import type {SequentialReaderType} from "./sequential-reader"
 
 export type ArrayReaderType = InstanceType<ReturnType<typeof ArrayReader>>
 
@@ -13,6 +13,7 @@ export function ArrayReader<TBase extends Constructor<DataViewDelegateType & Seq
      *
      * Nice for quickly reading in data.
      *
+     * @internal
      * @param length Number of elements to map.
      * @return Uint8Array to the KaitaiStream backing buffer.
      */

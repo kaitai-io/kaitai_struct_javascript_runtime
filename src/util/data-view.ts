@@ -2,7 +2,7 @@ export type DataViewReadTypes = "Int" | "Float" | "Uint" | "BigUint" | "BigInt"
 export type DataViewBitTypes<T extends DataViewReadTypes> = T extends "Int"
   ? 8 | 16 | 32
   : T extends "Uint"
-  ? 16 | 32
+  ? 8 | 16 | 32
   : T extends "Float"
   ? 32 | 64
   : T extends "BigUint"

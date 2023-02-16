@@ -1,6 +1,6 @@
-import {Constructor} from "../util/mixin"
-import {SequentialReaderType} from "./sequential-reader"
-import {ByteReaderType} from "./byte-reader"
+import type {Constructor} from "../util/mixin"
+import type {SequentialReaderType} from "./sequential-reader"
+import type {ByteReaderType} from "./byte-reader"
 
 export function BitReader<TBase extends Constructor<SequentialReaderType & ByteReaderType>>(Base: TBase) {
   return class BitReader extends Base {
