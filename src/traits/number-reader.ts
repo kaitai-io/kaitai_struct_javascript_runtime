@@ -7,12 +7,12 @@ import type {
 import {convertFloat16} from "../util/float-16"
 import type {Constructor} from "../util/mixin"
 import type {SequentialReaderType} from "./sequential-reader"
-import type {KaitaiStreamIntegerReadingApi} from "../kaitai-api"
+import type {KaitaiStreamNumberReadingApi} from "../kaitai-api"
 
 export type NumberReaderType = InstanceType<ReturnType<typeof NumberReader>>
 
 export function NumberReader<TBase extends Constructor<SequentialReaderType>>(Base: TBase) {
-  return class NumberReader extends Base implements KaitaiStreamIntegerReadingApi {
+  return class NumberReader extends Base implements KaitaiStreamNumberReadingApi {
     /**
      * @internal
      */

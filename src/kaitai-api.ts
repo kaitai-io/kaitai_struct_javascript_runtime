@@ -42,7 +42,7 @@ export interface KaitaiStreamPositioningApi {
  *
  * Basically, it’s the same designation as used in the type clause in .ksy format.
  */
-export type KaitaiStreamIntegerReadingApi = {
+export type KaitaiStreamNumberReadingApi = {
   [key in `read${`U${2 | 4}` | `S${2 | 4}` | `F${2 | 4 | 8}`}${"be" | "le"}`]: () => number
 } & {
   [key in `read${"U" | "S"}1`]: () => number
@@ -90,7 +90,7 @@ export interface KaitaiStreamStringReadingApi {
   ): string
 }
 
-export type KaitaiStreamReadingApi = KaitaiStreamIntegerReadingApi &
+export type KaitaiStreamReadingApi = KaitaiStreamNumberReadingApi &
   KaitaiStreamByteArrayReadingApi &
   KaitaiStreamStringReadingApi
 

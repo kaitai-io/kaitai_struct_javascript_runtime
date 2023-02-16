@@ -1,5 +1,5 @@
 import KaitaiStream from "../src/index"
-import type {KaitaiStreamIntegerReadingApi} from "../src/kaitai-api"
+import type {KaitaiStreamNumberReadingApi} from "../src/kaitai-api"
 
 const signResults = {
   S: {
@@ -35,7 +35,7 @@ describe("number reading", function () {
       for (const endian of ["le", "be"]) {
         const functionName = `read${sign}${length}${
           length === 1 ? "" : endian
-        }` as keyof KaitaiStreamIntegerReadingApi
+        }` as keyof KaitaiStreamNumberReadingApi
         describe(functionName, function () {
           it(`should read the correct sign`, function () {
             expect(
@@ -61,7 +61,7 @@ describe("number reading", function () {
 
   for (const length of [2, 4, 8]) {
     for (const endian of ["le", "be"]) {
-      const functionName = `readF${length}${endian}` as keyof KaitaiStreamIntegerReadingApi
+      const functionName = `readF${length}${endian}` as keyof KaitaiStreamNumberReadingApi
       describe(functionName, function () {
         it("should read the correct number", function () {
           expect((new KaitaiStream(floatBinary[endian][length]) as any)[functionName]()).toStrictEqual(-2.125)

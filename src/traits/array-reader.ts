@@ -19,8 +19,9 @@ export function ArrayReader<TBase extends Constructor<DataViewDelegateType & Seq
      */
     mapUint8Array(length = 0) {
       this.ensureBytesLeft(length)
+      const array = new Uint8Array(this.buffer, this.byteOffset + this.position, length)
       this.position += length
-      return new Uint8Array(this.buffer, this.byteOffset + this.position, length)
+      return array
     }
   }
 }
