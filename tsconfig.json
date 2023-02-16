@@ -1,0 +1,12 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "outDir": "dist",
+    "target": "ESNext",
+    "module": "ESNext",
+    "skipLibCheck": true,
+    "sourceMap": true,
+    "pretty": true
+  },
+  "include": ["src/**/*.ts"]
+}

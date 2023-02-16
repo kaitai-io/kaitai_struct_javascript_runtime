@@ -16,6 +16,26 @@ Further reading:
 * [About API implemented in this library](http://doc.kaitai.io/stream_api.html)
 * [JavaScript-specific notes](http://doc.kaitai.io/lang_javascript.html) - also includes Quick start guide
 
+## Usage
+
+### npm
+
+```shell
+npm i kaitai-struct
+```
+
+```ts
+import KaitaiStream from 'kaitai-stream'
+```
+Or
+```js
+const KaitaiStream = require('kaitai-stream')
+```
+
+### Browser
+
+
+
 ## Licensing
 
 Copyright 2012-2016 Ilmari Heikkinen\
