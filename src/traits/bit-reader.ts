@@ -2,6 +2,8 @@ import type {Constructor} from "../util/mixin"
 import type {SequentialReaderType} from "./sequential-reader"
 import type {ByteReaderType} from "./byte-reader"
 
+export type BitReaderType = InstanceType<ReturnType<typeof BitReader>>
+
 export function BitReader<TBase extends Constructor<SequentialReaderType & ByteReaderType>>(Base: TBase) {
   return class BitReader extends Base {
     /**

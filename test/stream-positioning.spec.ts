@@ -1,7 +1,7 @@
 import KaitaiStream from "../src/index"
 import {EOFError} from "../src/errors/eor-error"
 
-describe("Stream Positioning", function () {
+describe("stream positioning", function () {
   describe("eof", function () {
     it("should correctly report eof", function () {
       const stream = new KaitaiStream(new Uint8Array(0))
