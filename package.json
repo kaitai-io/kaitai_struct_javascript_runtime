@@ -22,6 +22,9 @@
       "default": "./dist/index.mjs"
     }
   },
+  "files": [
+    "dist/*"
+  ],
   "scripts": {
     "build": "rimraf dist && rollup -c",
     "test": "jest",
