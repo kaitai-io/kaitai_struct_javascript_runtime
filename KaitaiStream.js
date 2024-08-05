@@ -569,6 +569,28 @@ KaitaiStream.prototype.readBytesTerm = function(terminator, include, consume, eo
   }
 };
 
+KaitaiStream.prototype.readBytesTermMulti = function(terminator, include, consume, eosError) {
+  var unitSize = terminator.length;
+  var data = new Uint8Array(this._buffer, this._byteOffset + this.pos, this.size - this.pos);
+  var res = KaitaiStream.bytesTerminateMulti(data, terminator, true);
+  this.pos += res.length;
+  var termFound =
+    res.length !== 0 &&
+    res.length % unitSize === 0 &&
+    KaitaiStream.byteArrayCompare(new Uint8Array(res.buffer, res.length - unitSize), terminator) === 0;
+  if (termFound) {
+    if (!include) {
+      res = new Uint8Array(res.buffer, res.byteOffset, res.length - unitSize);
+    }
+    if (!consume) {
+      this.pos -= unitSize;
+    }
+  } else if (eosError) {
+    throw new Error("End of stream reached, but no terminator " + terminator + " found");
+  }
+  return res;
+};
+
 // Unused since Kaitai Struct Compiler v0.9+ - compatibility with older versions
 KaitaiStream.prototype.ensureFixedContents = function(expected) {
   var actual = this.readBytes(expected.length);
@@ -601,6 +623,28 @@ KaitaiStream.bytesTerminate = function(data, term, include) {
   if (include && newLen < maxLen)
     newLen++;
   return data.slice(0, newLen);
+};
+
+KaitaiStream.bytesTerminateMulti = function(data, term, include) {
+  var unitSize = term.length;
+  if (unitSize === 0) {
+    return new Uint8Array();
+  }
+  var len = data.length;
+  var iTerm = 0;
+  for (var iData = 0; iData < len;) {
+    if (data[iData] !== term[iTerm]) {
+      iData += unitSize - iTerm;
+      iTerm = 0;
+      continue;
+    }
+    iData++;
+    iTerm++;
+    if (iTerm === unitSize) {
+      return data.slice(0, iData - (include ? 0 : unitSize));
+    }
+  }
+  return data.slice();
 };
 
 KaitaiStream.bytesToStr = function(arr, encoding) {
