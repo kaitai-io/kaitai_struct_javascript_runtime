@@ -219,8 +219,12 @@ KaitaiStream.prototype.readS8be = function() {
   var v2 = this.readU4be();
 
   if ((v1 & 0x80000000) !== 0) {
+    var p1 = v1 ^ 0xffffffff;
+    var p2 = v2 ^ 0xffffffff;
+    var p3 = 0x100000000 * (p1 + 1) + p2;
+
     // negative number
-    return -(0x100000000 * (v1 ^ 0xffffffff) + (v2 ^ 0xffffffff)) - 1;
+    return -p3 - 1;
   } else {
     return 0x100000000 * v1 + v2;
   }
@@ -265,8 +269,12 @@ KaitaiStream.prototype.readS8le = function() {
   var v2 = this.readU4le();
 
   if ((v2 & 0x80000000) !== 0) {
+    var p1 = v1 ^ 0xffffffff;
+    var p2 = v2 ^ 0xffffffff;
+    var p3 = 0x100000000 * (p2 + 1) + p1;
+
     // negative number
-    return -(0x100000000 * (v2 ^ 0xffffffff) + (v1 ^ 0xffffffff)) - 1;
+    return -p3 - 1;
   } else {
     return 0x100000000 * v2 + v1;
   }
@@ -537,36 +545,28 @@ KaitaiStream.endianness = new Int8Array(new Int16Array([1]).buffer)[0] > 0;
 // ========================================================================
 
 KaitaiStream.prototype.readBytes = function(len) {
-  return this.mapUint8Array(len);
+  return this.mapUint8Array(len, len);
 };
 
 KaitaiStream.prototype.readBytesFull = function() {
-  return this.mapUint8Array(this.size - this.pos);
+  return this.readBytes(this.size - this.pos);
 };
 
 KaitaiStream.prototype.readBytesTerm = function(terminator, include, consume, eosError) {
-  var blen = this.size - this.pos;
-  var u8 = new Uint8Array(this._buffer, this._byteOffset + this.pos);
-  for (var i = 0; i < blen && u8[i] !== terminator; i++); // find first zero byte
-  if (i === blen) {
+  var len = this.size - this.pos;
+  var u8 = new Uint8Array(this._buffer, this._byteOffset + this.pos, len);
+  var i = u8.findIndex(function(value) { return value === terminator; });
+  if (i < 0) {
     // we've read all the buffer and haven't found the terminator
     if (eosError) {
-      throw "End of stream reached, but no terminator " + terminator + " found";
-    } else {
-      return this.mapUint8Array(i);
+      throw new Error("End of stream reached, but no terminator " + terminator + " found");
     }
-  } else {
-    var arr;
-    if (include) {
-      arr = this.mapUint8Array(i + 1);
-    } else {
-      arr = this.mapUint8Array(i);
-    }
-    if (consume) {
-      this.pos += 1;
-    }
-    return arr;
+    return this.readBytes(len);
   }
+  return this.mapUint8Array(
+    include ? i + 1 : i,
+    consume ? i + 1 : i
+  );
 };
 
 KaitaiStream.prototype.readBytesTermMulti = function(terminator, include, consume, eosError) {
@@ -666,8 +666,7 @@ KaitaiStream.bytesToStr = function(arr, encoding) {
         case 'ucs-2':
         case 'utf16le':
         case 'utf-16le':
-          return new Buffer(arr).toString(encoding);
-          break;
+          return Buffer.from(arr).toString(encoding);
         default:
           // unsupported encoding, we'll have to resort to iconv-lite
           if (typeof KaitaiStream.iconvlite === 'undefined')
@@ -707,7 +706,7 @@ KaitaiStream.processXorMany = function(data, key) {
 
 KaitaiStream.processRotateLeft = function(data, amount, groupSize) {
   if (groupSize !== 1)
-    throw("unable to rotate group of " + groupSize + " bytes yet");
+    throw new Error("unable to rotate group of " + groupSize + " bytes yet");
 
   var mask = groupSize * 8 - 1;
   var antiAmount = -amount & mask;
@@ -750,7 +749,7 @@ KaitaiStream.processZlib = function(buf) {
 
 KaitaiStream.mod = function(a, b) {
   if (b <= 0)
-    throw "mod divisor <= 0";
+    throw new Error("mod divisor <= 0");
   var r = a % b;
   if (r < 0)
     r += b;
@@ -903,15 +902,17 @@ KaitaiStream.prototype.ensureBytesLeft = function(length) {
   Nice for quickly reading in data.
 
   @param {number} length Number of elements to map.
+  @param {number} [consume=length] Number of elements to consume (default to `length`).
   @return {Object} Uint8Array to the KaitaiStream backing buffer.
   */
-KaitaiStream.prototype.mapUint8Array = function(length) {
+KaitaiStream.prototype.mapUint8Array = function(length, consume = length) {
   length |= 0;
+  consume |= 0;
 
   this.ensureBytesLeft(length);
 
   var arr = new Uint8Array(this._buffer, this.byteOffset + this.pos, length);
-  this.pos += length;
+  this.pos += consume;
   return arr;
 };
 
