@@ -188,13 +188,11 @@ KaitaiStream.prototype.addChildStream = function (child) {
 };
 
 KaitaiStream.prototype.writeBackChildStreams = function (parent = null) {
-  const _pos = this.pos;
-  if (this.childStreams) {
-      for (let child of this.childStreams) {
-      child.writeBackChildStreams(this);
-      }
-      this.childStreams.length = 0; // Clear the array
+  var _pos = this.pos;
+  for (let i = 0; i < this.childStreams.length; i++) {
+    this.childStreams[i].writeBackChildStreams(this);
   }
+  this.childStreams.length = 0; // Clear the array
   this.seek(_pos);
   if (parent !== null) {
       this._writeBack(parent);
@@ -703,10 +701,10 @@ KaitaiStream.prototype.writeAlignToByte = function () {
 };
 
 KaitaiStream.prototype._writeBytesNotAligned = function (buf) {
-  const n = buf.byteLength;
-  const pos = this.pos;
+  var n = buf.byteLength;
+  var pos = this.pos;
   this.ensureBytesLeft(n, pos);
-  const arr = new Uint8Array(buf);
+  var arr = new Uint8Array(buf);
 
   for (let i = 0; i < n; i++) {
     this.dataView.setUint8(this.pos, arr[i]);
