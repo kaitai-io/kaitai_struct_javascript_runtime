@@ -176,7 +176,7 @@ WriteBackHandler.prototype.writeBack = function (parent) {
   this.handler(parent);
 };
 
-KaitaiStream.prototype.WriteBackHandler = function (pos, handler) {
+KaitaiStream.WriteBackHandler = function (pos, handler) {
   return new WriteBackHandler(pos, handler);
 };
 
