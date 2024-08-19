@@ -30,6 +30,7 @@ var KaitaiStream = function(arrayBuffer, byteOffset) {
     this.buffer = new ArrayBuffer(arrayBuffer || 1);
   }
   this.pos = 0;
+  this.childStreams = [];
   this.alignToByte();
 };
 
@@ -162,6 +163,47 @@ Object.defineProperty(KaitaiStream.prototype, 'size',
   }});
 
 // ========================================================================
+// Child streams
+// ========================================================================
+
+function WriteBackHandler(pos, handler) {
+  this.pos = pos;
+  this.handler = handler;
+}
+
+WriteBackHandler.prototype.writeBack = function (parent) {
+  parent.seek(this.pos);
+  this.handler(parent);
+};
+
+KaitaiStream.WriteBackHandler = function (pos, handler) {
+  return new WriteBackHandler(pos, handler);
+};
+
+KaitaiStream.prototype.addChildStream = function (child) {
+  if (!this.childStreams) {
+      this.childStreams = [];
+  }
+  this.childStreams.push(child);
+};
+
+KaitaiStream.prototype.writeBackChildStreams = function (parent = null) {
+  var _pos = this.pos;
+  for (let i = 0; i < this.childStreams.length; i++) {
+    this.childStreams[i].writeBackChildStreams(this);
+  }
+  this.childStreams.length = 0; // Clear the array
+  this.seek(_pos);
+  if (parent !== null) {
+      this._writeBack(parent);
+  }
+};
+
+KaitaiStream.prototype._writeBack = function (parent) {
+  this.writeBackHandler.writeBack(parent);
+};
+
+// ========================================================================
 // Integer numbers
 // ========================================================================
 
@@ -242,6 +284,17 @@ KaitaiStream.prototype.readS2le = function() {
 };
 
 /**
+  Writes a 16-bit little-endian unsigned int to the stream.
+  @param {number} value The number to write.
+*/
+KaitaiStream.prototype.writeS2le = function (value) {
+  var buffer = new ArrayBuffer(2);
+  var dataView = new DataView(buffer);
+  dataView.setInt16(0, value, true);
+  this.writeBytes(buffer);
+};
+
+/**
   Reads a 32-bit little-endian signed int from the stream.
   @return {number} The read number.
  */
@@ -285,6 +338,17 @@ KaitaiStream.prototype.readU1 = function() {
   var v = this._dataView.getUint8(this.pos);
   this.pos += 1;
   return v;
+};
+
+/**
+  Writes an 8-bit unsigned int to the stream.
+  @param {number} value The number to write.
+*/
+KaitaiStream.prototype.writeU1 = function (value) {
+  var buffer = new ArrayBuffer(1);
+  var dataView = new DataView(buffer);
+  dataView.setUint8(0, value);
+  this.writeBytes(buffer);
 };
 
 // ........................................................................
@@ -343,6 +407,17 @@ KaitaiStream.prototype.readU2le = function() {
 };
 
 /**
+  Writes a 16-bit little-endian unsigned int to the stream.
+  @param {number} value The number to write.
+*/
+KaitaiStream.prototype.writeU2le = function (value) {
+  var buffer = new ArrayBuffer(2);
+  var dataView = new DataView(buffer);
+  dataView.setUint16(0, value, true);
+  this.writeBytes(buffer);
+};
+
+/**
   Reads a 32-bit little-endian unsigned int from the stream.
   @return {number} The read number.
  */
@@ -351,6 +426,17 @@ KaitaiStream.prototype.readU4le = function() {
   var v = this._dataView.getUint32(this.pos, true);
   this.pos += 4;
   return v;
+};
+
+/**
+  Writes a 32-bit little-endian unsigned int to the stream.
+  @param {number} value The number to write.
+*/
+KaitaiStream.prototype.writeU4le = function (value) {
+  var buffer = new ArrayBuffer(4);
+  var dataView = new DataView(buffer);
+  dataView.setUint32(0, value, true);
+  this.writeBytes(buffer);
 };
 
 /**
@@ -398,6 +484,13 @@ KaitaiStream.prototype.readF4le = function() {
   var v = this._dataView.getFloat32(this.pos, true);
   this.pos += 4;
   return v;
+};
+
+KaitaiStream.prototype.writeF4le = function (value) {
+  var buffer = new ArrayBuffer(4);
+  var dataView = new DataView(buffer);
+  dataView.setFloat32(0, value, true);
+  this.writeBytes(buffer);
 };
 
 KaitaiStream.prototype.readF8le = function() {
@@ -591,6 +684,34 @@ KaitaiStream.prototype.readBytesTermMulti = function(terminator, include, consum
   return res;
 };
 
+KaitaiStream.prototype.writeBytes = function (buffer) {
+  this.writeAlignToByte();
+  this._writeBytesNotAligned(buffer);
+};
+
+KaitaiStream.prototype.writeAlignToByte = function () {
+  if (this.bitsLeft > 0) {
+    var b = this.bits;
+    if (!this.bitsLe) {
+      b <<= 8 - this.bitsLeft;
+    }
+    this.alignToByte();
+    this._writeBytesNotAligned(KaitaiStream.byteFromInt(b));
+  }
+};
+
+KaitaiStream.prototype._writeBytesNotAligned = function (buf) {
+  var n = buf.byteLength;
+  var pos = this.pos;
+  this.ensureBytesLeft(n, pos);
+  var arr = new Uint8Array(buf);
+
+  for (let i = 0; i < n; i++) {
+    this.dataView.setUint8(this.pos, arr[i]);
+    this.pos++;
+  }
+};
+
 // Unused since Kaitai Struct Compiler v0.9+ - compatibility with older versions
 KaitaiStream.prototype.ensureFixedContents = function(expected) {
   var actual = this.readBytes(expected.length);
@@ -677,6 +798,18 @@ KaitaiStream.bytesToStr = function(arr, encoding) {
       }
     }
   }
+}
+
+KaitaiStream.prototype.toByteArray = function () {
+  var pos = this.pos;
+  this.seek(0);
+  var byteArray = this.readBytesFull();
+  this.seek(pos);
+  return byteArray;
+};
+
+KaitaiStream.prototype.byteFromInt = function (i) {
+  return new Uint8Array([i]);
 };
 
 // ========================================================================
@@ -894,6 +1027,18 @@ var ValidationExprError = KaitaiStream.ValidationExprError = function(actual, io
 
 ValidationExprError.prototype = Object.create(Error.prototype);
 ValidationExprError.prototype.constructor = ValidationExprError;
+
+var ConsistencyError = (KaitaiStream.ConsistencyError = function (id, expected, actual) {
+  this.name = "ConsistencyError";
+  this.message =
+    "Check failed: " + id + ", expected [" + expected + "], but got [" + actual + "]";
+  this.expected = expected;
+  this.actual = actual;
+  this.stack = new Error().stack;
+});
+
+ConsistencyError.prototype = Object.create(Error.prototype);
+ConsistencyError.prototype.constructor = ConsistencyError;
 
 /**
   Ensures that we have an least `length` bytes left in the stream.
