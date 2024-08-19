@@ -875,6 +875,16 @@ var ValidationNotAnyOfError = KaitaiStream.ValidationNotAnyOfError = function(ac
 ValidationNotAnyOfError.prototype = Object.create(Error.prototype);
 ValidationNotAnyOfError.prototype.constructor = ValidationNotAnyOfError;
 
+var ValidationNotInEnumError = KaitaiStream.ValidationNotInEnumError = function(actual, io, srcPath) {
+  this.name = "ValidationNotInEnumError";
+  this.message = "not in the enum, got [" + actual + "]";
+  this.actual = actual;
+  this.stack = (new Error()).stack;
+};
+
+ValidationNotInEnumError.prototype = Object.create(Error.prototype);
+ValidationNotInEnumError.prototype.constructor = ValidationNotInEnumError;
+
 var ValidationExprError = KaitaiStream.ValidationExprError = function(actual, io, srcPath) {
   this.name = "ValidationExprError";
   this.message = "not matching the expression, got [" + actual + "]";
