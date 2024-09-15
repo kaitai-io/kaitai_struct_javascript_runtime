@@ -1,7 +1,0 @@
-.npmignore
-.travis.yml
-rollup.config.js
-KaitaiStream.ts
-tsconfig.json
-*.tgz
-.github

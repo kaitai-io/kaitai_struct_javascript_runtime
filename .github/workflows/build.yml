@@ -1,23 +1,21 @@
-name: npm build
+name: npm publish
 
 on:
   push:
-    branches:
-      - master
-  pull_request: {}
+    tags:
+      - 'v0.[0-9]+.[0-9]+-SNAPSHOT.[0-9]+'
 
 jobs:
   publish-npm:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 12
+          node-version: '20'
           registry-url: https://registry.npmjs.org/
       - run: npm ci
       - name: Publish to npm
         run: npm publish --tag next
         env:
           NODE_AUTH_TOKEN: ${{secrets.npm_token}}
-        if: github.ref == 'refs/heads/master'

@@ -182,7 +182,7 @@ class KaitaiStream {
 
   /**
    * Returns the byte length of the KaitaiStream object.
-   * 
+   *
    * @returns The byte length.
    */
   public get size(): number {
@@ -477,45 +477,49 @@ class KaitaiStream {
    * Aligns bit reading to the byte boundry.
    */
   public alignToByte(): void {
-    this.bits = 0;
     this.bitsLeft = 0;
+    this.bits = 0;
   }
 
   /**
    * @param n The number of bits to read.
    * @returns The read bits.
-   * @throws {Error}
+   * @throws {RangeError}
    */
   public readBitsIntBe(n: number): number {
     // JS only supports bit operations on 32 bits
     if (n > 32) {
-      throw new Error(`readBitsIntBe: the maximum supported bit length is 32 (tried to read ${n} bits)`);
+      throw new RangeError("readBitsIntBe: the maximum supported bit length is 32 (tried to read " + n + " bits)");
     }
-    const bitsNeeded = n - this.bitsLeft;
+    var res = 0;
+
+    var bitsNeeded = n - this.bitsLeft;
+    this.bitsLeft = -bitsNeeded & 7; // `-bitsNeeded mod 8`
+
     if (bitsNeeded > 0) {
       // 1 bit  => 1 byte
       // 8 bits => 1 byte
       // 9 bits => 2 bytes
-      const bytesNeeded = Math.ceil(bitsNeeded / 8);
-      const buf = this.readBytes(bytesNeeded);
-      for (let i = 0; i < bytesNeeded; i++) {
-        this.bits <<= 8;
-        this.bits |= buf[i];
-        this.bitsLeft += 8;
+      var bytesNeeded = ((bitsNeeded - 1) >> 3) + 1; // `ceil(bitsNeeded / 8)` (NB: `x >> 3` is `floor(x / 8)`)
+      var buf = this.readBytes(bytesNeeded);
+      for (var i = 0; i < bytesNeeded; i++) {
+        res = res << 8 | buf[i];
       }
+
+      var newBits = res;
+      res = res >>> this.bitsLeft | this.bits << bitsNeeded; // `x << 32` is defined as `x << 0` in JS, but only `0 << 32`
+                                                            // can occur here (`n = 32` and `bitsLeft = 0`, this implies
+                                                            // `bits = 0` unless changed externally)
+      this.bits = newBits; // will be masked at the end of the function
+    } else {
+      res = this.bits >>> -bitsNeeded; // shift unneeded bits out
     }
 
-    // raw mask with required number of 1s, starting from lowest bit
-    let mask = n === 32 ? 0xffffffff : (1 << n) - 1;
-    // shift this.bits to align the highest bits with the mask & derive reading result
-    const shiftBits = this.bitsLeft - n;
-    const res = (this.bits >>> shiftBits) & mask;
-    // clear top bits that we've just read => AND with 1s
-    this.bitsLeft -= n;
-    mask = (1 << this.bitsLeft) - 1;
+    var mask = (1 << this.bitsLeft) - 1; // `bitsLeft` is in range 0..7, so `(1 << 32)` does not have to be considered
     this.bits &= mask;
 
-    return res;
+    // always return an unsigned 32-bit integer
+    return res >>> 0;
   }
 
   /**
@@ -532,34 +536,46 @@ class KaitaiStream {
   /**
    * @param n The number of bits to read.
    * @returns The read bits.
-   * @throws {Error}
+   * @throws {RangeError}
    */
   public readBitsIntLe(n: number): number {
     // JS only supports bit operations on 32 bits
     if (n > 32) {
-      throw new Error(`readBitsIntLe: the maximum supported bit length is 32 (tried to read ${n} bits)`);
+      throw new RangeError("readBitsIntLe: the maximum supported bit length is 32 (tried to read " + n + " bits)");
     }
-    const bitsNeeded = n - this.bitsLeft;
+    var res = 0;
+    var bitsNeeded = n - this.bitsLeft;
+
     if (bitsNeeded > 0) {
       // 1 bit  => 1 byte
       // 8 bits => 1 byte
       // 9 bits => 2 bytes
-      const bytesNeeded = Math.ceil(bitsNeeded / 8);
-      const buf = this.readBytes(bytesNeeded);
-      for (let i = 0; i < bytesNeeded; i++) {
-        this.bits |= (buf[i] << this.bitsLeft);
-        this.bitsLeft += 8;
+      var bytesNeeded = ((bitsNeeded - 1) >> 3) + 1; // `ceil(bitsNeeded / 8)` (NB: `x >> 3` is `floor(x / 8)`)
+      var buf = this.readBytes(bytesNeeded);
+      for (var i = 0; i < bytesNeeded; i++) {
+        res |= buf[i] << (i * 8);
       }
+
+      // NB: in JavaScript, bit shift operators always shift by modulo 32 of the right-hand operand (see
+      // https://tc39.es/ecma262/multipage/ecmascript-data-types-and-values.html#sec-numeric-types-number-unsignedRightShift),
+      // so `res >>> 32` is equivalent to `res >>> 0` (but we don't want that)
+      var newBits = bitsNeeded < 32 ? res >>> bitsNeeded : 0;
+      res = res << this.bitsLeft | this.bits;
+      this.bits = newBits;
+    } else {
+      res = this.bits;
+      this.bits >>>= n;
     }
 
-    // raw mask with required number of 1s, starting from lowest bit
-    const mask = n === 32 ? 0xffffffff : (1 << n) - 1;
-    // derive reading result
-    const res = this.bits & mask;
-    // remove bottom bits that we've just read by shifting
-    this.bits >>>= n;
-    this.bitsLeft -= n;
+    this.bitsLeft = -bitsNeeded & 7; // `-bitsNeeded mod 8`
 
+    // always return an unsigned 32-bit integer
+    if (n < 32) {
+      var mask = (1 << n) - 1;
+      res &= mask; // this produces a signed 32-bit int, but the sign bit is cleared
+    } else {
+      res >>>= 0;
+    }
     return res;
   }
 
@@ -625,8 +641,40 @@ class KaitaiStream {
   }
 
   /**
+   * Reads bytes until the terminator byte sequence is found.
+   *
+   * @param terminator The terminator byte sequence.
+   * @param include True if the terminator should be included with the returned bytes.
+   * @param consume True if the terminator should be consumed from the input stream.
+   * @param eosError True to throw an error if the end of stream is reached.
+   * @returns The read bytes.
+   * @throws {string}
+   */
+  public readBytesTermMulti(terminator: number[] | Uint8Array, include: boolean, consume: boolean, eosError: boolean): Uint8Array {
+    var unitSize = terminator.length;
+    var data = new Uint8Array(this._buffer, this._byteOffset + this.pos, this.size - this.pos);
+    var res = KaitaiStream.bytesTerminateMulti(data, terminator, true);
+    this.pos += res.length;
+    var termFound =
+      res.length !== 0 &&
+      res.length % unitSize === 0 &&
+      KaitaiStream.byteArrayCompare(new Uint8Array(res.buffer, res.length - unitSize), terminator) === 0;
+    if (termFound) {
+      if (!include) {
+        res = new Uint8Array(res.buffer, res.byteOffset, res.length - unitSize);
+      }
+      if (!consume) {
+        this.pos -= unitSize;
+      }
+    } else if (eosError) {
+      throw new Error("End of stream reached, but no terminator " + terminator + " found");
+    }
+    return res;
+  }
+
+  /**
    * Unused since Kaitai Struct Compiler v0.9+ - compatibility with older versions.
-   * 
+   *
    * @param expected The expected bytes.
    * @returns The read bytes.
    * @throws {KaitaiStream.UnexpectedDataError}
@@ -673,6 +721,34 @@ class KaitaiStream {
     if (include && newLen < maxLen)
       newLen++;
     return data.slice(0, newLen);
+  }
+
+  /**
+   * @param data The data.
+   * @param term The terminator.
+   * @param include True if the returned bytes should include the terminator.
+   * @returns The terminated bytes.
+   */
+  public static bytesTerminateMulti(data: Uint8Array, term: number[] | NodeJS.TypedArray, include: boolean): Uint8Array {
+    var unitSize = term.length;
+    if (unitSize === 0) {
+      return new Uint8Array();
+    }
+    var len = data.length;
+    var iTerm = 0;
+    for (var iData = 0; iData < len;) {
+      if (data[iData] !== term[iTerm]) {
+        iData += unitSize - iTerm;
+        iTerm = 0;
+        continue;
+      }
+      iData++;
+      iTerm++;
+      if (iTerm === unitSize) {
+        return data.slice(0, iData - (include ? 0 : unitSize));
+      }
+    }
+    return data.slice();
   }
 
   /**
@@ -853,7 +929,7 @@ class KaitaiStream {
    * @param b The second array.
    * @returns `0` if the arrays are the equal, a positive number if `a` is greater than `b`, or a negative number if `a` is less than `b`.
    */
-  public static byteArrayCompare(a: ArrayLike<number>, b: ArrayLike<number>): number {
+  public static byteArrayCompare(a: number[] | Uint8Array, b: number[] | Uint8Array): number {
     if (a === b)
       return 0;
     const al = a.length;
@@ -991,6 +1067,21 @@ class KaitaiStream {
       super("not any of the list, got [" + actual + "]");
       // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
       Object.setPrototypeOf(this, KaitaiStream.ValidationNotAnyOfError.prototype);
+      this.actual = actual;
+    }
+  };
+
+  public static ValidationNotInEnumError = class extends Error {
+    public name = "ValidationNotInEnumError";
+    public actual: any;
+
+    /**
+     * @param actual The actual value.
+     */
+    public constructor(actual: any) {
+      super("not in the enum, got [" + actual + "]");
+      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
+      Object.setPrototypeOf(this, KaitaiStream.ValidationNotInEnumError.prototype);
       this.actual = actual;
     }
   };
