@@ -848,15 +848,16 @@ class KaitaiStream {
    * @param buf The input bytes.
    * @returns The uncompressed bytes.
    */
-  public static processZlib(buf: Uint8Array): Uint8Array | Buffer {
+  public static processZlib(buf: Uint8Array): Uint8Array {
     if (typeof require !== 'undefined') {
       // require is available - we're running under node
       if (typeof KaitaiStream.zlib === 'undefined')
         KaitaiStream.zlib = require('zlib') as Zlib;
       // use node's zlib module API
-      return (KaitaiStream.zlib as Zlib).inflateSync(
-        Buffer.from(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength))
+      const r = (KaitaiStream.zlib as Zlib).inflateSync(
+          Buffer.from(buf.buffer.slice(buf.byteOffset, buf.byteOffset + buf.byteLength))
       );
+      return new Uint8Array(r.buffer, r.byteOffset, r.length);
     } else {
       // no require() - assume we're running as a web worker in browser.
       // user should have configured KaitaiStream.depUrls.zlib, if not
