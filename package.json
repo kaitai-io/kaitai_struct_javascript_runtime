@@ -29,7 +29,9 @@
   "main": "index.js",
   "types": "index.d.ts",
   "files": [
-    "KaitaiStream.js"
+    "KaitaiStream.js",
+    "KaitaiStream.d.ts",
+    "index.d.ts"
   ],
   "scripts": {
     "build": "rollup -c",
