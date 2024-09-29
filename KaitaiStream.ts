@@ -756,7 +756,7 @@ class KaitaiStream {
    * @param encoding The character encoding.
    * @returns The decoded string.
    */
-  public static bytesToStr(arr: Uint8Array, encoding: BufferEncoding): string {
+  public static bytesToStr(arr: Uint8Array, encoding: string): string {
     if (encoding == null || encoding.toLowerCase() === "ascii") {
       return KaitaiStream.createStringFromArray(arr);
     } else {
@@ -775,7 +775,7 @@ class KaitaiStream {
           case 'ucs-2':
           case 'utf16le':
           case 'utf-16le':
-            return Buffer.from(arr).toString(encoding);
+            return Buffer.from(arr).toString(encoding as BufferEncoding);
           default:
             // unsupported encoding, we'll have to resort to iconv-lite
             if (typeof KaitaiStream.iconvlite === 'undefined')
