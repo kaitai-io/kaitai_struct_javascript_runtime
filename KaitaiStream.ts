@@ -474,7 +474,7 @@ class KaitaiStream {
   // ------------------------------------------------------------------------
 
   /**
-   * Aligns bit reading to the byte boundry.
+   * Aligns the stream position to the next byte boundary.
    */
   public alignToByte(): void {
     this.bitsLeft = 0;
@@ -761,13 +761,13 @@ class KaitaiStream {
       return KaitaiStream.createStringFromArray(arr);
     } else {
       if (typeof TextDecoder === 'function') {
-        // we're in the browser that supports TextDecoder
+        // we're in a browser that supports TextDecoder, or in Node.js 11 or later
         return (new TextDecoder(encoding)).decode(arr);
       } else {
-        // probably we're in node.js
+        // probably we're in Node.js < 11
 
-        // check if it's supported natively by node.js Buffer
-        // see https://github.com/nodejs/node/blob/master/lib/buffer.js#L187 for details
+        // check if it's supported natively by Node.js Buffer
+        // see https://nodejs.org/docs/latest-v10.x/api/buffer.html#buffer_buffers_and_character_encodings
         switch (encoding.toLowerCase()) {
           case 'utf8':
           case 'utf-8':
@@ -825,7 +825,7 @@ class KaitaiStream {
 
   /**
    * @param data The input bytes.
-   * @param amount The number of bytes to rotate.
+   * @param amount The shift amount in bits.
    * @param groupSize The number of bytes in each group.
    * @returns The rotated bytes.
    * @throws {string}
@@ -1102,8 +1102,8 @@ class KaitaiStream {
   };
 
   /**
-   * Ensures that we have an least `length` bytes left in the stream.
-   * If that's not true, throws an EOFError.
+   * Ensures that we have at least `length` bytes left in the stream.
+   * If not, throws an EOFError.
    *
    * @param length Number of bytes to require.
    * @throws {KaitaiStream.EOFError}
