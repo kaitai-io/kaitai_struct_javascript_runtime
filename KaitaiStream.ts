@@ -650,7 +650,7 @@ class KaitaiStream {
    * @returns The read bytes.
    * @throws {string}
    */
-  public readBytesTermMulti(terminator: number[] | Uint8Array, include: boolean, consume: boolean, eosError: boolean): Uint8Array {
+  public readBytesTermMulti(terminator: Uint8Array, include: boolean, consume: boolean, eosError: boolean): Uint8Array {
     var unitSize = terminator.length;
     var data = new Uint8Array(this._buffer, this._byteOffset + this.pos, this.size - this.pos);
     var res = KaitaiStream.bytesTerminateMulti(data, terminator, true);
@@ -698,7 +698,7 @@ class KaitaiStream {
    * @param padByte The byte to strip.
    * @returns The stripped data.
    */
-  public static bytesStripRight(data: number[] | NodeJS.TypedArray, padByte: number): number[] | NodeJS.TypedArray {
+  public static bytesStripRight(data: Uint8Array, padByte: number): Uint8Array {
     let newLen = data.length;
     while (data[newLen - 1] === padByte) {
       newLen--;
@@ -712,7 +712,7 @@ class KaitaiStream {
    * @param include True if the returned bytes should include the terminator.
    * @returns The terminated bytes.
    */
-  public static bytesTerminate(data: number[] | NodeJS.TypedArray, term: number, include: boolean): number[] | NodeJS.TypedArray {
+  public static bytesTerminate(data: Uint8Array, term: number, include: boolean): Uint8Array {
     let newLen = 0;
     const maxLen = data.length;
     while (newLen < maxLen && data[newLen] !== term) {
@@ -729,7 +729,7 @@ class KaitaiStream {
    * @param include True if the returned bytes should include the terminator.
    * @returns The terminated bytes.
    */
-  public static bytesTerminateMulti(data: Uint8Array, term: number[] | NodeJS.TypedArray, include: boolean): Uint8Array {
+  public static bytesTerminateMulti(data: Uint8Array, term: Uint8Array, include: boolean): Uint8Array {
     var unitSize = term.length;
     if (unitSize === 0) {
       return new Uint8Array();
@@ -796,7 +796,7 @@ class KaitaiStream {
    * @param key The key byte.
    * @returns The Xor'd bytes.
    */
-  public static processXorOne(data: ArrayLike<number>, key: number): Uint8Array {
+  public static processXorOne(data: Uint8Array, key: number): Uint8Array {
     const r = new Uint8Array(data.length);
     const dl = data.length;
     for (let i = 0; i < dl; i++)
@@ -809,7 +809,7 @@ class KaitaiStream {
    * @param key The key bytes.
    * @returns The Xor'd bytes.
    */
-  public static processXorMany(data: ArrayLike<number>, key: ArrayLike<number>): Uint8Array {
+  public static processXorMany(data: Uint8Array, key: Uint8Array): Uint8Array {
     const dl = data.length;
     const r = new Uint8Array(dl);
     const kl = key.length;
@@ -830,7 +830,7 @@ class KaitaiStream {
    * @returns The rotated bytes.
    * @throws {string}
    */
-  public static processRotateLeft(data: ArrayLike<number>, amount: number, groupSize: number): Uint8Array {
+  public static processRotateLeft(data: Uint8Array, amount: number, groupSize: number): Uint8Array {
     if (groupSize !== 1)
       throw ("unable to rotate group of " + groupSize + " bytes yet");
 
@@ -929,7 +929,7 @@ class KaitaiStream {
    * @param b The second array.
    * @returns `0` if the arrays are the equal, a positive number if `a` is greater than `b`, or a negative number if `a` is less than `b`.
    */
-  public static byteArrayCompare(a: number[] | Uint8Array, b: number[] | Uint8Array): number {
+  public static byteArrayCompare(a: Uint8Array, b: Uint8Array): number {
     if (a === b)
       return 0;
     const al = a.length;
@@ -1139,11 +1139,11 @@ class KaitaiStream {
    * @param array Array of character codes.
    * @returns String created from the character codes.
    */
-  public static createStringFromArray(array: number[] | Uint8Array): string {
+  public static createStringFromArray(array: Uint8Array): string {
     const chunk_size = 0x8000;
     const chunks = [];
     for (let i = 0; i < array.length; i += chunk_size) {
-      const chunk = 'subarray' in array ? array.subarray(i, i + chunk_size) : array.slice(i, i + chunk_size);
+      const chunk = array.subarray(i, i + chunk_size);
       chunks.push(String.fromCharCode.apply(null, chunk));
     }
     return chunks.join("");
