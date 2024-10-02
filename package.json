@@ -34,8 +34,7 @@
     "index.d.ts"
   ],
   "scripts": {
-    "build": "rollup -c",
-    "prepublish": "npm run build"
+    "build": "rollup -c"
   },
   "devDependencies": {
     "@rollup/plugin-typescript": "^8.3.0",
