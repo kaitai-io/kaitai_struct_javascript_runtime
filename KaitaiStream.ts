@@ -954,7 +954,7 @@ class KaitaiStream {
   // Internal implementation details
   // ========================================================================
 
-  public static EOFError = class extends Error {
+  public static EOFError = class EOFError extends Error {
     public name = "EOFError";
     public bytesReq: number;
     public bytesAvail: number;
@@ -975,7 +975,7 @@ class KaitaiStream {
   /**
    * Unused since Kaitai Struct Compiler v0.9+ - compatibility with older versions.
    */
-  public static UnexpectedDataError = class extends Error {
+  public static UnexpectedDataError = class UnexpectedDataError extends Error {
     public name = "UnexpectedDataError";
     public expected: any;
     public actual: any;
@@ -993,7 +993,7 @@ class KaitaiStream {
     }
   };
 
-  public static UndecidedEndiannessError = class extends Error {
+  public static UndecidedEndiannessError = class UndecidedEndiannessError extends Error {
     public name = "UndecidedEndiannessError";
 
     public constructor() {
@@ -1003,7 +1003,7 @@ class KaitaiStream {
     }
   };
 
-  public static ValidationNotEqualError = class extends Error {
+  public static ValidationNotEqualError = class ValidationNotEqualError extends Error {
     public name = "ValidationNotEqualError";
     public expected: any;
     public actual: any;
@@ -1021,7 +1021,7 @@ class KaitaiStream {
     }
   };
 
-  public static ValidationLessThanError = class extends Error {
+  public static ValidationLessThanError = class ValidationLessThanError extends Error {
     public name = "ValidationLessThanError";
     public min: any;
     public actual: any;
@@ -1039,7 +1039,7 @@ class KaitaiStream {
     }
   };
 
-  public static ValidationGreaterThanError = class extends Error {
+  public static ValidationGreaterThanError = class ValidationGreaterThanError extends Error {
     public name = "ValidationGreaterThanError";
     public max: any;
     public actual: any;
@@ -1057,7 +1057,7 @@ class KaitaiStream {
     }
   };
 
-  public static ValidationNotAnyOfError = class extends Error {
+  public static ValidationNotAnyOfError = class ValidationNotAnyOfError extends Error {
     public name = "ValidationNotAnyOfError";
     public actual: any;
 
@@ -1072,7 +1072,7 @@ class KaitaiStream {
     }
   };
 
-  public static ValidationNotInEnumError = class extends Error {
+  public static ValidationNotInEnumError = class ValidationNotInEnumError extends Error {
     public name = "ValidationNotInEnumError";
     public actual: any;
 
@@ -1087,7 +1087,7 @@ class KaitaiStream {
     }
   };
 
-  public static ValidationExprError = class extends Error {
+  public static ValidationExprError = class ValidationExprError extends Error {
     public name = "ValidationExprError";
     public actual: any;
 
