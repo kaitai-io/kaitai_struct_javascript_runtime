@@ -16,6 +16,20 @@ Further reading:
 * [About API implemented in this library](http://doc.kaitai.io/stream_api.html)
 * [JavaScript-specific notes](http://doc.kaitai.io/lang_javascript.html) - also includes Quick start guide
 
+## Development
+
+After cloning this repository, you must run these commands to compile the
+TypeScript source file [`KaitaiStream.ts`](./KaitaiStream.ts) into the
+`KaitaiStream.js` file (ignored by Git) with JavaScript code:
+
+```shell
+npm install
+npm run build
+```
+
+`npm run build` also needs to be run after each change to
+[`KaitaiStream.ts`](./KaitaiStream.ts).
+
 ## Licensing
 
 Copyright 2012-2016 Ilmari Heikkinen\
