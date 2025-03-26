@@ -26,21 +26,22 @@
   },
   "license": "Apache-2.0",
   "author": "Kaitai team (https://github.com/orgs/kaitai-io/people) and Ilmari Heikkinen",
+  "type": "commonjs",
   "main": "index.js",
   "types": "index.d.ts",
   "files": [
-    "KaitaiStream.js",
-    "KaitaiStream.d.ts",
-    "index.d.ts"
+    "*.js",
+    "*.d.ts"
   ],
   "scripts": {
-    "build": "rollup -c"
+    "build": "rollup -c",
+    "prepack": "npm run build"
   },
   "devDependencies": {
-    "@rollup/plugin-typescript": "^8.3.0",
+    "@rollup/plugin-typescript": "^12.1.2",
     "@types/node": "^16.11.11",
-    "rollup": "^2.60.2",
+    "rollup": "^4.35.0",
     "tslib": "^2.3.1",
-    "typescript": "^4.5.2"
+    "typescript": "^5.8.2"
   }
 }
