@@ -16,7 +16,8 @@ jobs:
           registry-url: https://registry.npmjs.org/
       - run: npm ci
       - name: Check that KaitaiStream.js will be included
-        run: npm pack --json | jq --exit-status '.files | map(.path) | any(. == "KaitaiStream.js")'
+        run: |
+          npm publish --tag next --dry-run --json | jq --exit-status '.files | map(.path) | any(. == "KaitaiStream.js")'
       - name: Publish to npm
         run: npm publish --tag next
         env:
