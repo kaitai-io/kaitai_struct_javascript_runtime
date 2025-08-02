@@ -32,7 +32,7 @@ class KaitaiStream {
    * @param arrayBuffer ArrayBuffer to read from.
    * @param byteOffset Offset from arrayBuffer beginning for the KaitaiStream.
    */
-  public constructor(arrayBuffer: ArrayBuffer | DataView | number, byteOffset?: number) {
+  public constructor(arrayBuffer: ArrayBuffer | DataView<ArrayBuffer> | number, byteOffset?: number) {
     this._byteOffset = byteOffset || 0;
     if (arrayBuffer instanceof ArrayBuffer) {
       this.buffer = arrayBuffer;
@@ -56,7 +56,7 @@ class KaitaiStream {
   private _byteLength = 0;
   private _byteOffset = 0;
   private _buffer!: ArrayBuffer;
-  private _dataView!: DataView;
+  private _dataView!: DataView<ArrayBuffer>;
 
   public pos: number;
   public bits = 0;
@@ -124,14 +124,14 @@ class KaitaiStream {
    *
    * @returns The backing DataView.
    */
-  public get dataView(): DataView {
+  public get dataView(): DataView<ArrayBuffer> {
     return this._dataView;
   }
   /**
    * Sets the backing DataView of the KaitaiStream object and updates the buffer
    * and byteOffset to point to the DataView values.
    */
-  public set dataView(v: DataView) {
+  public set dataView(v: DataView<ArrayBuffer>) {
     this._byteOffset = v.byteOffset;
     this._buffer = v.buffer;
     this._dataView = new DataView(this._buffer, this._byteOffset);
