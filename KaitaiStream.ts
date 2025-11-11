@@ -176,6 +176,7 @@ class KaitaiStream {
    * @param pos Position to seek to.
    */
   public seek(pos: number): void {
+    this.alignToByte();
     const npos = Math.max(0, Math.min(this.size, pos));
     this.pos = (isNaN(npos) || !isFinite(npos)) ? 0 : npos;
   }
@@ -203,6 +204,7 @@ class KaitaiStream {
    * @returns The read number.
    */
   public readS1(): number {
+    this.alignToByte();
     this.ensureBytesLeft(1);
     const v = this._dataView.getInt8(this.pos);
     this.pos += 1;
@@ -219,6 +221,7 @@ class KaitaiStream {
    * @returns The read number.
    */
   public readS2be(): number {
+    this.alignToByte();
     this.ensureBytesLeft(2);
     const v = this._dataView.getInt16(this.pos);
     this.pos += 2;
@@ -231,6 +234,7 @@ class KaitaiStream {
    * @returns The read number.
    */
   public readS4be(): number {
+    this.alignToByte();
     this.ensureBytesLeft(4);
     const v = this._dataView.getInt32(this.pos);
     this.pos += 4;
@@ -246,6 +250,7 @@ class KaitaiStream {
    * @returns The read number.
    */
   public readS8be(): number {
+    this.alignToByte();
     this.ensureBytesLeft(8);
     const v1 = this.readU4be();
     const v2 = this.readU4be();
@@ -268,6 +273,7 @@ class KaitaiStream {
    * @returns The read number.
    */
   public readS2le(): number {
+    this.alignToByte();
     this.ensureBytesLeft(2);
     const v = this._dataView.getInt16(this.pos, true);
     this.pos += 2;
@@ -280,6 +286,7 @@ class KaitaiStream {
    * @returns The read number.
    */
   public readS4le(): number {
+    this.alignToByte();
     this.ensureBytesLeft(4);
     const v = this._dataView.getInt32(this.pos, true);
     this.pos += 4;
@@ -295,6 +302,7 @@ class KaitaiStream {
    * @returns The read number.
    */
   public readS8le(): number {
+    this.alignToByte();
     this.ensureBytesLeft(8);
     const v1 = this.readU4le();
     const v2 = this.readU4le();
@@ -317,6 +325,7 @@ class KaitaiStream {
    * @returns The read number.
    */
   public readU1(): number {
+    this.alignToByte();
     this.ensureBytesLeft(1);
     const v = this._dataView.getUint8(this.pos);
     this.pos += 1;
@@ -333,6 +342,7 @@ class KaitaiStream {
    * @returns The read number.
    */
   public readU2be(): number {
+    this.alignToByte();
     this.ensureBytesLeft(2);
     const v = this._dataView.getUint16(this.pos);
     this.pos += 2;
@@ -345,6 +355,7 @@ class KaitaiStream {
    * @returns The read number.
    */
   public readU4be(): number {
+    this.alignToByte();
     this.ensureBytesLeft(4);
     const v = this._dataView.getUint32(this.pos);
     this.pos += 4;
@@ -360,6 +371,7 @@ class KaitaiStream {
    * @returns The read number.
    */
   public readU8be(): number {
+    this.alignToByte();
     this.ensureBytesLeft(8);
     const v1 = this.readU4be();
     const v2 = this.readU4be();
@@ -376,6 +388,7 @@ class KaitaiStream {
    * @returns The read number.
    */
   public readU2le(): number {
+    this.alignToByte();
     this.ensureBytesLeft(2);
     const v = this._dataView.getUint16(this.pos, true);
     this.pos += 2;
@@ -388,6 +401,7 @@ class KaitaiStream {
    * @returns The read number.
    */
   public readU4le(): number {
+    this.alignToByte();
     this.ensureBytesLeft(4);
     const v = this._dataView.getUint32(this.pos, true);
     this.pos += 4;
@@ -403,6 +417,7 @@ class KaitaiStream {
    * @returns The read number.
    */
   public readU8le(): number {
+    this.alignToByte();
     this.ensureBytesLeft(8);
     const v1 = this.readU4le();
     const v2 = this.readU4le();
@@ -423,6 +438,7 @@ class KaitaiStream {
    * @returns The read number.
    */
   public readF4be(): number {
+    this.alignToByte();
     this.ensureBytesLeft(4);
     const v = this._dataView.getFloat32(this.pos);
     this.pos += 4;
@@ -435,6 +451,7 @@ class KaitaiStream {
    * @returns The read number.
    */
   public readF8be(): number {
+    this.alignToByte();
     this.ensureBytesLeft(8);
     const v = this._dataView.getFloat64(this.pos);
     this.pos += 8;
@@ -451,6 +468,7 @@ class KaitaiStream {
    * @returns The read number.
    */
   public readF4le(): number {
+    this.alignToByte();
     this.ensureBytesLeft(4);
     const v = this._dataView.getFloat32(this.pos, true);
     this.pos += 4;
@@ -463,6 +481,7 @@ class KaitaiStream {
    * @returns The read number.
    */
   public readF8le(): number {
+    this.alignToByte();
     this.ensureBytesLeft(8);
     const v = this._dataView.getFloat64(this.pos, true);
     this.pos += 8;
@@ -501,7 +520,7 @@ class KaitaiStream {
       // 8 bits => 1 byte
       // 9 bits => 2 bytes
       const bytesNeeded = ((bitsNeeded - 1) >> 3) + 1; // `ceil(bitsNeeded / 8)` (NB: `x >> 3` is `floor(x / 8)`)
-      const buf = this.readBytes(bytesNeeded);
+      const buf = this.mapUint8Array(bytesNeeded);
       for (let i = 0; i < bytesNeeded; i++) {
         res = res << 8 | buf[i];
       }
@@ -551,7 +570,7 @@ class KaitaiStream {
       // 8 bits => 1 byte
       // 9 bits => 2 bytes
       const bytesNeeded = ((bitsNeeded - 1) >> 3) + 1; // `ceil(bitsNeeded / 8)` (NB: `x >> 3` is `floor(x / 8)`)
-      const buf = this.readBytes(bytesNeeded);
+      const buf = this.mapUint8Array(bytesNeeded);
       for (let i = 0; i < bytesNeeded; i++) {
         res |= buf[i] << (i * 8);
       }
@@ -594,6 +613,7 @@ class KaitaiStream {
    * @returns The read bytes.
    */
   public readBytes(len: number): Uint8Array {
+    this.alignToByte();
     return this.mapUint8Array(len);
   }
 
@@ -601,6 +621,7 @@ class KaitaiStream {
    * @returns The read bytes.
    */
   public readBytesFull(): Uint8Array {
+    this.alignToByte();
     return this.mapUint8Array(this.size - this.pos);
   }
 
@@ -615,6 +636,7 @@ class KaitaiStream {
    * @throws {string}
    */
   public readBytesTerm(terminator: number, include: boolean, consume: boolean, eosError: boolean): Uint8Array {
+    this.alignToByte();
     const blen = this.size - this.pos;
     const u8 = new Uint8Array(this._buffer, this._byteOffset + this.pos);
     let i;
@@ -651,6 +673,7 @@ class KaitaiStream {
    * @throws {string}
    */
   public readBytesTermMulti(terminator: Uint8Array, include: boolean, consume: boolean, eosError: boolean): Uint8Array {
+    this.alignToByte();
     const unitSize = terminator.length;
     const data = new Uint8Array(this._buffer, this._byteOffset + this.pos, this.size - this.pos);
     let res = KaitaiStream.bytesTerminateMulti(data, terminator, true);
