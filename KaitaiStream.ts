@@ -1132,7 +1132,7 @@ class KaitaiStream {
    * @param length Number of bytes to require.
    * @throws {KaitaiStream.EOFError}
    */
-  public ensureBytesLeft(length: number): void {
+  protected ensureBytesLeft(length: number): void {
     if (this.pos + length > this.size) {
       throw new KaitaiStream.EOFError(length, this.size - this.pos);
     }
@@ -1145,7 +1145,7 @@ class KaitaiStream {
    * @param length Number of elements to map.
    * @returns A Uint8Array to the KaitaiStream backing buffer.
    */
-  public mapUint8Array(length: number): Uint8Array {
+  protected mapUint8Array(length: number): Uint8Array {
     length |= 0;
 
     this.ensureBytesLeft(length);
@@ -1163,7 +1163,7 @@ class KaitaiStream {
    * @param array Array of character codes.
    * @returns String created from the character codes.
    */
-  public static createStringFromArray(array: Uint8Array): string {
+  protected static createStringFromArray(array: Uint8Array): string {
     const chunk_size = 0x8000;
     const chunks = [];
     for (let i = 0; i < array.length; i += chunk_size) {
