@@ -755,7 +755,7 @@ class KaitaiStream {
   public static bytesTerminateMulti(data: Uint8Array, term: Uint8Array, include: boolean): Uint8Array {
     const unitSize = term.length;
     if (unitSize === 0) {
-      return new Uint8Array();
+      return new Uint8Array(0);
     }
     const len = data.length;
     let iTerm = 0;
