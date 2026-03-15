@@ -9,11 +9,13 @@ on:
 permissions: {}
 
 jobs:
-  publish-npm:
+  build:
+    name: Build
     runs-on: ubuntu-latest
     permissions:
-      id-token: write  # Required for OIDC (see https://docs.npmjs.com/trusted-publishers)
       contents: read
+    outputs:
+      tarball-artifact-id: ${{ steps.upload-tarball.outputs.artifact-id }}
     steps:
       - uses: actions/checkout@v6
         with:
@@ -22,11 +24,44 @@ jobs:
         with:
           package-manager-cache: false  # IMPORTANT: prevents potential [cache poisoning](https://docs.zizmor.sh/audits/#cache-poisoning) attacks
           node-version: '24'
-          registry-url: https://registry.npmjs.org/
       - run: npm ci
-      - name: Select dist-tag
+      - name: Pack the package into a tarball
         run: |
-          GIT_TAG=${GITHUB_REF#refs/tags/*}
+          mkdir -vp pkg-outdir
+          npm pack --pack-destination pkg-outdir --json | tee pkg-outdir/npm-pack-output.json
+      - name: Check that KaitaiStream.js is included
+        run: |
+          jq --exit-status '.[0].files | map(.path) | any(. == "KaitaiStream.js")' pkg-outdir/npm-pack-output.json
+      - name: Upload the package tarball as artifact
+        id: upload-tarball
+        uses: actions/upload-artifact@v7
+        with:
+          path: pkg-outdir/*.tgz
+          archive: false
+          if-no-files-found: error
+
+  publish:
+    name: Publish
+    runs-on: ubuntu-latest
+    needs:
+      - build
+    permissions:
+      id-token: write  # Required for OIDC (see https://docs.npmjs.com/trusted-publishers)
+    steps:
+      - name: Download the package tarball
+        uses: actions/download-artifact@v8
+        with:
+          artifact-ids: ${{ needs.build.outputs.tarball-artifact-id }}
+          path: pkg-outdir/
+      - uses: actions/setup-node@v6
+        with:
+          package-manager-cache: false  # IMPORTANT: prevents potential [cache poisoning](https://docs.zizmor.sh/audits/#cache-poisoning) attacks
+          node-version: '24'
+          registry-url: 'https://registry.npmjs.org'
+      - name: Select dist-tag
+        id: select-tag
+        run: |
+          GIT_TAG=${GITHUB_REF#refs/tags/}
           if [[ "$GIT_TAG" == v0.+([0-9]).+([0-9])-SNAPSHOT.+([0-9]) ]]; then
             DIST_TAG=next
           elif [[ "$GIT_TAG" == v0.+([0-9]).+([0-9]) ]]; then
@@ -35,9 +70,8 @@ jobs:
             echo "Error: the tag name '$GIT_TAG' does not match any of the patterns"
             exit 1
           fi
-          echo "DIST_TAG=$DIST_TAG" >> "$GITHUB_ENV"
-      - name: Check that KaitaiStream.js will be included
-        run: |
-          npm publish --tag "$DIST_TAG" --dry-run --json | jq --exit-status '.files | map(.path) | any(. == "KaitaiStream.js")'
+          echo "dist-tag=$DIST_TAG" >> "$GITHUB_OUTPUT"
       - name: Publish to npm
-        run: npm publish --tag "$DIST_TAG"
+        env:
+          DIST_TAG: ${{ steps.select-tag.outputs.dist-tag }}
+        run: npm publish ./pkg-outdir/*.tgz --tag "$DIST_TAG" --json
