@@ -977,154 +977,6 @@ class KaitaiStream {
   // Internal implementation details
   // ========================================================================
 
-  public static EOFError = class EOFError extends Error {
-    public name = "EOFError";
-    public bytesReq: number;
-    public bytesAvail: number;
-
-    /**
-     * @param bytesReq The number of bytes requested.
-     * @param bytesAvail The number of bytes available.
-     */
-    public constructor(bytesReq: number, bytesAvail: number) {
-      super("requested " + bytesReq + " bytes, but only " + bytesAvail + " bytes available");
-      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
-      Object.setPrototypeOf(this, KaitaiStream.EOFError.prototype);
-      this.bytesReq = bytesReq;
-      this.bytesAvail = bytesAvail;
-    }
-  };
-
-  /**
-   * Unused since Kaitai Struct Compiler v0.9+ - compatibility with older versions.
-   */
-  public static UnexpectedDataError = class UnexpectedDataError extends Error {
-    public name = "UnexpectedDataError";
-    public expected: any;
-    public actual: any;
-
-    /**
-     * @param expected The expected value.
-     * @param actual The actual value.
-     */
-    public constructor(expected: any, actual: any) {
-      super("expected [" + expected + "], but got [" + actual + "]");
-      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
-      Object.setPrototypeOf(this, KaitaiStream.UnexpectedDataError.prototype);
-      this.expected = expected;
-      this.actual = actual;
-    }
-  };
-
-  public static UndecidedEndiannessError = class UndecidedEndiannessError extends Error {
-    public name = "UndecidedEndiannessError";
-
-    public constructor() {
-      super();
-      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
-      Object.setPrototypeOf(this, KaitaiStream.UndecidedEndiannessError.prototype);
-    }
-  };
-
-  public static ValidationNotEqualError = class ValidationNotEqualError extends Error {
-    public name = "ValidationNotEqualError";
-    public expected: any;
-    public actual: any;
-
-    /**
-     * @param expected The expected value.
-     * @param actual The actual value.
-     */
-    public constructor(expected: any, actual: any) {
-      super("not equal, expected [" + expected + "], but got [" + actual + "]");
-      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
-      Object.setPrototypeOf(this, KaitaiStream.ValidationNotEqualError.prototype);
-      this.expected = expected;
-      this.actual = actual;
-    }
-  };
-
-  public static ValidationLessThanError = class ValidationLessThanError extends Error {
-    public name = "ValidationLessThanError";
-    public min: any;
-    public actual: any;
-
-    /**
-     * @param min The minimum allowed value.
-     * @param actual The actual value.
-     */
-    public constructor(min: any, actual: any) {
-      super("not in range, min [" + min + "], but got [" + actual + "]");
-      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
-      Object.setPrototypeOf(this, KaitaiStream.ValidationLessThanError.prototype);
-      this.min = min;
-      this.actual = actual;
-    }
-  };
-
-  public static ValidationGreaterThanError = class ValidationGreaterThanError extends Error {
-    public name = "ValidationGreaterThanError";
-    public max: any;
-    public actual: any;
-
-    /**
-     * @param max The maximum allowed value.
-     * @param actual The actual value.
-     */
-    public constructor(max: any, actual: any) {
-      super("not in range, max [" + max + "], but got [" + actual + "]");
-      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
-      Object.setPrototypeOf(this, KaitaiStream.ValidationGreaterThanError.prototype);
-      this.max = max;
-      this.actual = actual;
-    }
-  };
-
-  public static ValidationNotAnyOfError = class ValidationNotAnyOfError extends Error {
-    public name = "ValidationNotAnyOfError";
-    public actual: any;
-
-    /**
-     * @param actual The actual value.
-     */
-    public constructor(actual: any) {
-      super("not any of the list, got [" + actual + "]");
-      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
-      Object.setPrototypeOf(this, KaitaiStream.ValidationNotAnyOfError.prototype);
-      this.actual = actual;
-    }
-  };
-
-  public static ValidationNotInEnumError = class ValidationNotInEnumError extends Error {
-    public name = "ValidationNotInEnumError";
-    public actual: any;
-
-    /**
-     * @param actual The actual value.
-     */
-    public constructor(actual: any) {
-      super("not in the enum, got [" + actual + "]");
-      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
-      Object.setPrototypeOf(this, KaitaiStream.ValidationNotInEnumError.prototype);
-      this.actual = actual;
-    }
-  };
-
-  public static ValidationExprError = class ValidationExprError extends Error {
-    public name = "ValidationExprError";
-    public actual: any;
-
-    /**
-     * @param actual The actual value.
-     */
-    public constructor(actual: any) {
-      super("not matching the expression, got [" + actual + "]");
-      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
-      Object.setPrototypeOf(this, KaitaiStream.ValidationExprError.prototype);
-      this.actual = actual;
-    }
-  };
-
   /**
    * Ensures that we have at least `length` bytes left in the stream.
    * If not, throws an EOFError.
@@ -1172,6 +1024,156 @@ class KaitaiStream {
     }
     return chunks.join("");
   }
+}
+
+namespace KaitaiStream {
+  export class EOFError extends Error {
+    public name = "EOFError";
+    public bytesReq: number;
+    public bytesAvail: number;
+
+    /**
+     * @param bytesReq The number of bytes requested.
+     * @param bytesAvail The number of bytes available.
+     */
+    public constructor(bytesReq: number, bytesAvail: number) {
+      super("requested " + bytesReq + " bytes, but only " + bytesAvail + " bytes available");
+      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
+      Object.setPrototypeOf(this, KaitaiStream.EOFError.prototype);
+      this.bytesReq = bytesReq;
+      this.bytesAvail = bytesAvail;
+    }
+  };
+
+  /**
+   * Unused since Kaitai Struct Compiler v0.9+ - compatibility with older versions.
+   */
+  export class UnexpectedDataError extends Error {
+    public name = "UnexpectedDataError";
+    public expected: any;
+    public actual: any;
+
+    /**
+     * @param expected The expected value.
+     * @param actual The actual value.
+     */
+    public constructor(expected: any, actual: any) {
+      super("expected [" + expected + "], but got [" + actual + "]");
+      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
+      Object.setPrototypeOf(this, KaitaiStream.UnexpectedDataError.prototype);
+      this.expected = expected;
+      this.actual = actual;
+    }
+  };
+
+  export class UndecidedEndiannessError extends Error {
+    public name = "UndecidedEndiannessError";
+
+    public constructor() {
+      super();
+      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
+      Object.setPrototypeOf(this, KaitaiStream.UndecidedEndiannessError.prototype);
+    }
+  };
+
+  export class ValidationNotEqualError extends Error {
+    public name = "ValidationNotEqualError";
+    public expected: any;
+    public actual: any;
+
+    /**
+     * @param expected The expected value.
+     * @param actual The actual value.
+     */
+    public constructor(expected: any, actual: any) {
+      super("not equal, expected [" + expected + "], but got [" + actual + "]");
+      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
+      Object.setPrototypeOf(this, KaitaiStream.ValidationNotEqualError.prototype);
+      this.expected = expected;
+      this.actual = actual;
+    }
+  };
+
+  export class ValidationLessThanError extends Error {
+    public name = "ValidationLessThanError";
+    public min: any;
+    public actual: any;
+
+    /**
+     * @param min The minimum allowed value.
+     * @param actual The actual value.
+     */
+    public constructor(min: any, actual: any) {
+      super("not in range, min [" + min + "], but got [" + actual + "]");
+      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
+      Object.setPrototypeOf(this, KaitaiStream.ValidationLessThanError.prototype);
+      this.min = min;
+      this.actual = actual;
+    }
+  };
+
+  export class ValidationGreaterThanError extends Error {
+    public name = "ValidationGreaterThanError";
+    public max: any;
+    public actual: any;
+
+    /**
+     * @param max The maximum allowed value.
+     * @param actual The actual value.
+     */
+    public constructor(max: any, actual: any) {
+      super("not in range, max [" + max + "], but got [" + actual + "]");
+      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
+      Object.setPrototypeOf(this, KaitaiStream.ValidationGreaterThanError.prototype);
+      this.max = max;
+      this.actual = actual;
+    }
+  };
+
+  export class ValidationNotAnyOfError extends Error {
+    public name = "ValidationNotAnyOfError";
+    public actual: any;
+
+    /**
+     * @param actual The actual value.
+     */
+    public constructor(actual: any) {
+      super("not any of the list, got [" + actual + "]");
+      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
+      Object.setPrototypeOf(this, KaitaiStream.ValidationNotAnyOfError.prototype);
+      this.actual = actual;
+    }
+  };
+
+  export class ValidationNotInEnumError extends Error {
+    public name = "ValidationNotInEnumError";
+    public actual: any;
+
+    /**
+     * @param actual The actual value.
+     */
+    public constructor(actual: any) {
+      super("not in the enum, got [" + actual + "]");
+      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
+      Object.setPrototypeOf(this, KaitaiStream.ValidationNotInEnumError.prototype);
+      this.actual = actual;
+    }
+  };
+
+  export class ValidationExprError extends Error {
+    public name = "ValidationExprError";
+    public actual: any;
+
+    /**
+     * @param actual The actual value.
+     */
+    public constructor(actual: any) {
+      super("not matching the expression, got [" + actual + "]");
+      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
+      Object.setPrototypeOf(this, KaitaiStream.ValidationExprError.prototype);
+      this.actual = actual;
+    }
+  };
 }
 
 export default KaitaiStream;
