@@ -242,12 +242,21 @@ class KaitaiStream {
   }
 
   /**
-   * Reads a 64-bit big-endian unsigned int from the stream. Note that
-   * JavaScript does not support 64-bit integers natively, so it will
-   * automatically upgrade internal representation to use IEEE 754
-   * double precision float.
+   * Reads a 64-bit big-endian signed int from the stream and returns it as
+   * a {@link Number}.
    *
-   * @returns The read number.
+   * Note that the {@link Number} type in JavaScript cannot accurately represent
+   * 64-bit integers, as it is an IEEE 754 double-precision floating-point
+   * number, which has a precision of only 53 bits. Therefore, integers greater
+   * than {@link Number.MAX_SAFE_INTEGER} (`2**53 - 1` or
+   * `0x001f_ffff_ffff_ffff`) or less than {@link Number.MIN_SAFE_INTEGER}
+   * (`-2**53 + 1` or `-0x001f_ffff_ffff_ffff`) will be rounded, with a maximum
+   * rounding error of +- 512 for values above `2**62` or below `-2**62`. If
+   * this loss of precision is unacceptable, use {@link readS8beAsBigInt}
+   * instead.
+   *
+   * @returns The 64-bit signed integer read from the stream, potentially rounded.
+   * @see {@link readS8beAsBigInt}
    */
   public readS8be(): number {
     this.alignToByte();
@@ -261,6 +270,24 @@ class KaitaiStream {
     } else {
       return 0x100000000 * v1 + v2;
     }
+  }
+
+  /**
+   * Reads a 64-bit big-endian signed int from the stream and returns it as
+   * a {@link BigInt}.
+   *
+   * Unlike {@link readS8be}, this method returns the exact value without any
+   * loss of precision. This is made possible by the {@link BigInt} type.
+   *
+   * @returns The exact 64-bit signed integer read from the stream.
+   * @see {@link readS8be}
+   */
+  public readS8beAsBigInt(): bigint {
+    this.alignToByte();
+    this.ensureBytesLeft(8);
+    const v = this._dataView.getBigInt64(this.pos);
+    this.pos += 8;
+    return v;
   }
 
   // ........................................................................
@@ -294,12 +321,21 @@ class KaitaiStream {
   }
 
   /**
-   * Reads a 64-bit little-endian unsigned int from the stream. Note that
-   * JavaScript does not support 64-bit integers natively, so it will
-   * automatically upgrade internal representation to use IEEE 754
-   * double precision float.
+   * Reads a 64-bit little-endian signed int from the stream and returns it as
+   * a {@link Number}.
    *
-   * @returns The read number.
+   * Note that the {@link Number} type in JavaScript cannot accurately represent
+   * 64-bit integers, as it is an IEEE 754 double-precision floating-point
+   * number, which has a precision of only 53 bits. Therefore, integers greater
+   * than {@link Number.MAX_SAFE_INTEGER} (`2**53 - 1` or
+   * `0x001f_ffff_ffff_ffff`) or less than {@link Number.MIN_SAFE_INTEGER}
+   * (`-2**53 + 1` or `-0x001f_ffff_ffff_ffff`) will be rounded, with a maximum
+   * rounding error of +- 512 for values above `2**62` or below `-2**62`. If
+   * this loss of precision is unacceptable, use {@link readS8leAsBigInt}
+   * instead.
+   *
+   * @returns The 64-bit signed integer read from the stream, potentially rounded.
+   * @see {@link readS8leAsBigInt}
    */
   public readS8le(): number {
     this.alignToByte();
@@ -313,6 +349,24 @@ class KaitaiStream {
     } else {
       return 0x100000000 * v2 + v1;
     }
+  }
+
+  /**
+   * Reads a 64-bit little-endian signed int from the stream and returns it as
+   * a {@link BigInt}.
+   *
+   * Unlike {@link readS8le}, this method returns the exact value without any
+   * loss of precision. This is made possible by the {@link BigInt} type.
+   *
+   * @returns The exact 64-bit signed integer read from the stream.
+   * @see {@link readS8le}
+   */
+  public readS8leAsBigInt(): bigint {
+    this.alignToByte();
+    this.ensureBytesLeft(8);
+    const v = this._dataView.getBigInt64(this.pos, true);
+    this.pos += 8;
+    return v;
   }
 
   // ------------------------------------------------------------------------
@@ -363,12 +417,19 @@ class KaitaiStream {
   }
 
   /**
-   * Reads a 64-bit big-endian unsigned int from the stream. Note that
-   * JavaScript does not support 64-bit integers natively, so it will
-   * automatically upgrade internal representation to use IEEE 754
-   * double precision float.
+   * Reads a 64-bit big-endian unsigned int from the stream and returns it as
+   * a {@link Number}.
    *
-   * @returns The read number.
+   * Note that the {@link Number} type in JavaScript cannot accurately represent
+   * 64-bit integers, as it is an IEEE 754 double-precision floating-point
+   * number, which has a precision of only 53 bits. Therefore, integers greater
+   * than {@link Number.MAX_SAFE_INTEGER} (`2**53 - 1` or
+   * `0x001f_ffff_ffff_ffff`) will be rounded, with a maximum rounding error of
+   * +- 1024 for values above `2**63`. If this loss of precision is
+   * unacceptable, use {@link readU8beAsBigInt} instead.
+   *
+   * @returns The 64-bit unsigned integer read from the stream, potentially rounded.
+   * @see {@link readU8beAsBigInt}
    */
   public readU8be(): number {
     this.alignToByte();
@@ -376,6 +437,24 @@ class KaitaiStream {
     const v1 = this.readU4be();
     const v2 = this.readU4be();
     return 0x100000000 * v1 + v2;
+  }
+
+  /**
+   * Reads a 64-bit big-endian unsigned int from the stream and returns it as
+   * a {@link BigInt}.
+   *
+   * Unlike {@link readU8be}, this method returns the exact value without any
+   * loss of precision. This is made possible by the {@link BigInt} type.
+   *
+   * @returns The exact 64-bit unsigned integer read from the stream.
+   * @see {@link readU8be}
+   */
+  public readU8beAsBigInt(): bigint {
+    this.alignToByte();
+    this.ensureBytesLeft(8);
+    const v = this._dataView.getBigUint64(this.pos);
+    this.pos += 8;
+    return v;
   }
 
   // ........................................................................
@@ -409,12 +488,19 @@ class KaitaiStream {
   }
 
   /**
-   * Reads a 64-bit little-endian unsigned int from the stream. Note that
-   * JavaScript does not support 64-bit integers natively, so it will
-   * automatically upgrade internal representation to use IEEE 754
-   * double precision float.
+   * Reads a 64-bit little-endian unsigned int from the stream and returns it as
+   * a {@link Number}.
    *
-   * @returns The read number.
+   * Note that the {@link Number} type in JavaScript cannot accurately represent
+   * 64-bit integers, as it is an IEEE 754 double-precision floating-point
+   * number, which has a precision of only 53 bits. Therefore, integers greater
+   * than {@link Number.MAX_SAFE_INTEGER} (`2**53 - 1` or
+   * `0x001f_ffff_ffff_ffff`) will be rounded, with a maximum rounding error of
+   * +- 1024 for values above `2**63`. If this loss of precision is
+   * unacceptable, use {@link readU8leAsBigInt} instead.
+   *
+   * @returns The 64-bit unsigned integer read from the stream, potentially rounded.
+   * @see {@link readU8leAsBigInt}
    */
   public readU8le(): number {
     this.alignToByte();
@@ -422,6 +508,24 @@ class KaitaiStream {
     const v1 = this.readU4le();
     const v2 = this.readU4le();
     return 0x100000000 * v2 + v1;
+  }
+
+  /**
+   * Reads a 64-bit little-endian unsigned int from the stream and returns it as
+   * a {@link BigInt}.
+   *
+   * Unlike {@link readU8le}, this method returns the exact value without any
+   * loss of precision. This is made possible by the {@link BigInt} type.
+   *
+   * @returns The exact 64-bit unsigned integer read from the stream.
+   * @see {@link readU8le}
+   */
+  public readU8leAsBigInt(): bigint {
+    this.alignToByte();
+    this.ensureBytesLeft(8);
+    const v = this._dataView.getBigUint64(this.pos, true);
+    this.pos += 8;
+    return v;
   }
 
   // ========================================================================
