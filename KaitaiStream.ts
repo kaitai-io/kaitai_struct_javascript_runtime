@@ -646,6 +646,39 @@ class KaitaiStream {
   }
 
   /**
+   * @param n The number of bits to read.
+   * @returns The read bits as a {@link BigInt}.
+   */
+  public readBitsIntBeAsBigInt(n: number): bigint {
+    let res = BigInt(0);
+
+    const bitsNeeded = n - this.bitsLeft;
+    this.bitsLeft = -bitsNeeded & 7; // `-bitsNeeded mod 8`
+
+    if (bitsNeeded > 0) {
+      // 1 bit  => 1 byte
+      // 8 bits => 1 byte
+      // 9 bits => 2 bytes
+      const bytesNeeded = ((bitsNeeded - 1) >> 3) + 1; // `ceil(bitsNeeded / 8)` (NB: `x >> 3` is `floor(x / 8)`)
+      const buf = this.mapUint8Array(bytesNeeded);
+      for (let i = 0; i < bytesNeeded; i++) {
+        res = res << BigInt(8) | BigInt(buf[i]);
+      }
+
+      const newBits = Number(res & BigInt(0x7f));
+      res = res >> BigInt(this.bitsLeft) | BigInt(this.bits) << BigInt(bitsNeeded);
+      this.bits = newBits; // will be masked at the end of the function
+    } else {
+      res = BigInt(this.bits >>> -bitsNeeded); // shift unneeded bits out
+    }
+
+    const mask = (1 << this.bitsLeft) - 1; // `bitsLeft` is in range 0..7
+    this.bits &= mask;
+
+    return res;
+  }
+
+  /**
    * Unused since Kaitai Struct Compiler v0.9+ - compatibility with older versions.
    *
    * @deprecated Use {@link readBitsIntBe} instead.
@@ -675,8 +708,8 @@ class KaitaiStream {
       // 9 bits => 2 bytes
       const bytesNeeded = ((bitsNeeded - 1) >> 3) + 1; // `ceil(bitsNeeded / 8)` (NB: `x >> 3` is `floor(x / 8)`)
       const buf = this.mapUint8Array(bytesNeeded);
-      for (let i = 0; i < bytesNeeded; i++) {
-        res |= buf[i] << (i * 8);
+      for (let i = bytesNeeded - 1; i >= 0; i--) {
+        res = res << 8 | buf[i];
       }
 
       // NB: in JavaScript, bit shift operators always shift by modulo 32 of the right-hand operand (see
@@ -700,6 +733,37 @@ class KaitaiStream {
       res >>>= 0;
     }
     return res;
+  }
+
+  /**
+   * @param n The number of bits to read.
+   * @returns The read bits as a {@link BigInt}.
+   * @throws {RangeError}
+   */
+  public readBitsIntLeAsBigInt(n: number): bigint {
+    let res = BigInt(0);
+    const bitsNeeded = n - this.bitsLeft;
+
+    if (bitsNeeded > 0) {
+      // 1 bit  => 1 byte
+      // 8 bits => 1 byte
+      // 9 bits => 2 bytes
+      const bytesNeeded = ((bitsNeeded - 1) >> 3) + 1; // `ceil(bitsNeeded / 8)` (NB: `x >> 3` is `floor(x / 8)`)
+      const buf = this.mapUint8Array(bytesNeeded);
+      for (let i = bytesNeeded - 1; i >= 0; i--) {
+        res = res << BigInt(8) | BigInt(buf[i]);
+      }
+
+      const newBits = res >> BigInt(bitsNeeded);
+      res = (res << BigInt(this.bitsLeft)) | BigInt(this.bits);
+      this.bits = Number(newBits); // `newBits` is at most 7 bits wide => safe to convert
+    } else {
+      res = BigInt(this.bits);
+      this.bits >>>= n;
+    }
+
+    this.bitsLeft = -bitsNeeded & 7; // `-bitsNeeded mod 8`
+    return BigInt.asUintN(n, res);
   }
 
   /**
