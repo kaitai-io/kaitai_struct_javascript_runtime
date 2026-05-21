@@ -71,6 +71,18 @@ jobs:
             exit 1
           fi
           echo "dist-tag=$DIST_TAG" >> "$GITHUB_OUTPUT"
+      - name: Verify that the tag name matches the version
+        env:
+          DIST_TAG: ${{ steps.select-tag.outputs.dist-tag }}
+        run: |
+          GIT_TAG=${GITHUB_REF#refs/tags/}
+          VERSION_FROM_TAG=${GIT_TAG#v}
+          NPM_OUTPUT=$(npm publish ./pkg-outdir/*.tgz --tag "$DIST_TAG" --dry-run)
+          printf '%s\n' "$NPM_OUTPUT"
+          if [[ "$NPM_OUTPUT" != "+ kaitai-struct@${VERSION_FROM_TAG}" ]]; then
+            echo "Error: the tag name '$GIT_TAG' does not match npm output '$NPM_OUTPUT'"
+            exit 1
+          fi
       - name: Publish to npm
         env:
           DIST_TAG: ${{ steps.select-tag.outputs.dist-tag }}
