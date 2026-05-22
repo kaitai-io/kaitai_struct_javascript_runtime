@@ -175,9 +175,13 @@ class KaitaiStream {
    *
    * @param pos Position to seek to.
    */
-  public seek(pos: number): void {
+  public seek(pos: number | bigint): void {
     this.alignToByte();
-    const npos = Math.max(0, Math.min(this.size, pos));
+    // `posAsNumber` can potentially be an unsafe integer (if the `pos: bigint`
+    // parameter is greater than `Number.MAX_SAFE_INTEGER`), but that doesn't
+    // matter because it will be clamped to a valid range.
+    const posAsNumber: number = typeof pos === 'bigint' ? Number(pos) : pos;
+    const npos = Math.max(0, Math.min(this.size, posAsNumber));
     this.pos = (isNaN(npos) || !isFinite(npos)) ? 0 : npos;
   }
 
@@ -780,9 +784,28 @@ class KaitaiStream {
    * @param len The number of bytes to read.
    * @returns The read bytes.
    */
-  public readBytes(len: number): Uint8Array {
+  public readBytes(len: number | bigint): Uint8Array {
     this.alignToByte();
-    return this.mapUint8Array(len);
+    if (len < 0) {
+      throw new RangeError("negative length " + len + " given");
+    }
+    let lenAsNumberInt: number;
+    if (typeof len === 'bigint') {
+      // Calling `ensureBytesLeft()` already here allows us to preserve the
+      // original `bigint` value in the `EOFError` object. `mapUint8Array()`
+      // also calls `ensureBytesLeft()`, but it requires a `number`.
+      this.ensureBytesLeft(len);
+      // `len > Number.MAX_SAFE_INTEGER` is practically impossible. For this to
+      // happen, the stream would have to be backed by an `ArrayBuffer` with a
+      // length that exceeds `Number.MAX_SAFE_INTEGER` (i.e. `>= 2**53`), the
+      // creation of which must be rejected with a `RangeError` according to the
+      // ECMAScript specification, see
+      // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer/ArrayBuffer#exceptions
+      lenAsNumberInt = Number(len);
+    } else {
+      lenAsNumberInt = Math.floor(len);
+    }
+    return this.mapUint8Array(lenAsNumberInt);
   }
 
   /**
@@ -987,11 +1010,12 @@ class KaitaiStream {
    * @param key The key byte.
    * @returns The Xor'd bytes.
    */
-  public static processXorOne(data: Uint8Array, key: number): Uint8Array {
+  public static processXorOne(data: Uint8Array, key: number | bigint): Uint8Array {
+    const keyAsNumber: number = typeof key === 'bigint' ? Number(BigInt.asUintN(8, key)) : key;
     const dl = data.length;
     const r = new Uint8Array(dl);
     for (let i = 0; i < dl; i++)
-      r[i] = data[i] ^ key;
+      r[i] = data[i] ^ keyAsNumber;
     return r;
   }
 
@@ -1021,17 +1045,19 @@ class KaitaiStream {
    * @returns The rotated bytes.
    * @throws {RangeError}
    */
-  public static processRotateLeft(data: Uint8Array, amount: number, groupSize: number): Uint8Array {
+  public static processRotateLeft(data: Uint8Array, amount: number | bigint, groupSize: number): Uint8Array {
     if (groupSize !== 1)
       throw new RangeError("unable to rotate group of " + groupSize + " bytes yet");
 
+    const amountAsNumber: number = typeof amount === 'bigint' ? Number(BigInt.asUintN(3, amount)) : amount;
+
     const mask = groupSize * 8 - 1;
-    const antiAmount = -amount & mask;
+    const antiAmount = -amountAsNumber & mask;
 
     const dl = data.length;
     const r = new Uint8Array(dl);
     for (let i = 0; i < dl; i++)
-      r[i] = (data[i] << amount) & 0xff | (data[i] >> antiAmount);
+      r[i] = (data[i] << amountAsNumber) & 0xff | (data[i] >> antiAmount);
 
     return r;
   }
@@ -1074,12 +1100,18 @@ class KaitaiStream {
    * @returns The result of `a` mod `b`.
    * @throws {RangeError}
    */
-  public static mod(a: number, b: number): number {
+  public static mod(a: number, b: number): number;
+  public static mod(a: bigint, b: bigint): bigint;
+  public static mod(a: number | bigint, b: number | bigint): number | bigint {
+    // The `as number` casts in this method are a bit ugly, but I don't think
+    // there is a good way to tell TypeScript that we only accept either
+    // `(a, b): (number, number)` or `(a, b): (bigint, bigint)`, not
+    // `(a, b): (number, bigint)` or `(a, b): (bigint, number)`.
     if (b <= 0)
       throw new RangeError("mod divisor <= 0");
-    let r = a % b;
+    let r = (a as number) % (b as number);
     if (r < 0)
-      r += b;
+      r += b as number;
     return r;
   }
 
@@ -1089,7 +1121,9 @@ class KaitaiStream {
    * @param arr The input array.
    * @returns The smallest value.
    */
-  public static arrayMin(arr: ArrayLike<number>): number {
+  public static arrayMin(arr: ArrayLike<number>): number;
+  public static arrayMin(arr: ArrayLike<bigint>): bigint;
+  public static arrayMin(arr: ArrayLike<number> | ArrayLike<bigint>): number | bigint {
     let min = arr[0];
     const n = arr.length;
     for (let i = 1; i < n; i++) {
@@ -1105,7 +1139,9 @@ class KaitaiStream {
    * @param arr The input array.
    * @returns The largest value.
    */
-  public static arrayMax(arr: ArrayLike<number>): number {
+  public static arrayMax(arr: ArrayLike<number>): number;
+  public static arrayMax(arr: ArrayLike<bigint>): bigint;
+  public static arrayMax(arr: ArrayLike<number> | ArrayLike<bigint>): number | bigint {
     let max = arr[0];
     const n = arr.length;
     for (let i = 1; i < n; i++) {
@@ -1153,9 +1189,10 @@ class KaitaiStream {
    * @param length Number of bytes to require.
    * @throws {KaitaiStream.EOFError}
    */
-  protected ensureBytesLeft(length: number): void {
-    if (this.pos + length > this.size) {
-      throw new KaitaiStream.EOFError(length, this.size - this.pos);
+  protected ensureBytesLeft(length: number | bigint): void {
+    const numBytesAvailable = this.size - this.pos;
+    if (length > numBytesAvailable) {
+      throw new KaitaiStream.EOFError(length, numBytesAvailable);
     }
   }
 
@@ -1167,8 +1204,6 @@ class KaitaiStream {
    * @returns A Uint8Array to the KaitaiStream backing buffer.
    */
   protected mapUint8Array(length: number): Uint8Array {
-    length |= 0;
-
     this.ensureBytesLeft(length);
 
     const arr = new Uint8Array(this._buffer, this.byteOffset + this.pos, length);
@@ -1199,14 +1234,14 @@ class KaitaiStream {
 namespace KaitaiStream {
   export class EOFError extends Error {
     public name = "EOFError";
-    public bytesReq: number;
+    public bytesReq: number | bigint;
     public bytesAvail: number;
 
     /**
      * @param bytesReq The number of bytes requested.
      * @param bytesAvail The number of bytes available.
      */
-    public constructor(bytesReq: number, bytesAvail: number) {
+    public constructor(bytesReq: number | bigint, bytesAvail: number) {
       super("requested " + bytesReq + " bytes, but only " + bytesAvail + " bytes available");
       // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
       Object.setPrototypeOf(this, KaitaiStream.EOFError.prototype);
