@@ -1101,7 +1101,19 @@ class KaitaiStream {
    * @throws {RangeError}
    */
   public static mod(a: number, b: number): number;
+  /**
+   * @param a The dividend.
+   * @param b The divisor.
+   * @returns The result of `a` mod `b`.
+   * @throws {RangeError}
+   */
   public static mod(a: bigint, b: bigint): bigint;
+  /**
+   * @param a The dividend.
+   * @param b The divisor.
+   * @returns The result of `a` mod `b`.
+   * @throws {RangeError}
+   */
   public static mod(a: number | bigint, b: number | bigint): number | bigint {
     // The `as number` casts in this method are a bit ugly, but I don't think
     // there is a good way to tell TypeScript that we only accept either
@@ -1122,7 +1134,19 @@ class KaitaiStream {
    * @returns The smallest value.
    */
   public static arrayMin(arr: ArrayLike<number>): number;
+  /**
+   * Gets the smallest value in an array.
+   *
+   * @param arr The input array.
+   * @returns The smallest value.
+   */
   public static arrayMin(arr: ArrayLike<bigint>): bigint;
+  /**
+   * Gets the smallest value in an array.
+   *
+   * @param arr The input array.
+   * @returns The smallest value.
+   */
   public static arrayMin(arr: ArrayLike<number> | ArrayLike<bigint>): number | bigint {
     let min = arr[0];
     const n = arr.length;
@@ -1140,7 +1164,19 @@ class KaitaiStream {
    * @returns The largest value.
    */
   public static arrayMax(arr: ArrayLike<number>): number;
+  /**
+   * Gets the largest value in an array.
+   *
+   * @param arr The input array.
+   * @returns The largest value.
+   */
   public static arrayMax(arr: ArrayLike<bigint>): bigint;
+  /**
+   * Gets the largest value in an array.
+   *
+   * @param arr The input array.
+   * @returns The largest value.
+   */
   public static arrayMax(arr: ArrayLike<number> | ArrayLike<bigint>): number | bigint {
     let max = arr[0];
     const n = arr.length;
