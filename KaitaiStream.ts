@@ -860,8 +860,9 @@ class KaitaiStream {
     const mask = groupSize * 8 - 1;
     const antiAmount = -amount & mask;
 
-    const r = new Uint8Array(data.length);
-    for (let i = 0; i < data.length; i++)
+    const dl = data.length;
+    const r = new Uint8Array(dl);
+    for (let i = 0; i < dl; i++)
       r[i] = (data[i] << amount) & 0xff | (data[i] >> antiAmount);
 
     return r;
@@ -922,9 +923,9 @@ class KaitaiStream {
    */
   public static arrayMin(arr: ArrayLike<number>): number {
     let min = arr[0];
-    let x;
-    for (let i = 1, n = arr.length; i < n; ++i) {
-      x = arr[i];
+    const n = arr.length;
+    for (let i = 1; i < n; i++) {
+      const x = arr[i];
       if (x < min) min = x;
     }
     return min;
@@ -938,9 +939,9 @@ class KaitaiStream {
    */
   public static arrayMax(arr: ArrayLike<number>): number {
     let max = arr[0];
-    let x;
-    for (let i = 1, n = arr.length; i < n; ++i) {
-      x = arr[i];
+    const n = arr.length;
+    for (let i = 1; i < n; i++) {
+      const x = arr[i];
       if (x > max) max = x;
     }
     return max;
@@ -1016,10 +1017,11 @@ class KaitaiStream {
    * @returns String created from the character codes.
    */
   protected static createStringFromArray(array: Uint8Array): string {
-    const chunk_size = 0x8000;
+    const CHUNK_SIZE = 0x8000;
     const chunks = [];
-    for (let i = 0; i < array.length; i += chunk_size) {
-      const chunk = array.subarray(i, i + chunk_size);
+    const len = array.length;
+    for (let i = 0; i < len; i += CHUNK_SIZE) {
+      const chunk = array.subarray(i, i + CHUNK_SIZE);
       chunks.push(String.fromCharCode.apply(null, chunk));
     }
     return chunks.join("");
