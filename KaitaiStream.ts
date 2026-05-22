@@ -633,7 +633,7 @@ class KaitaiStream {
    * @param consume True if the terminator should be consumed from the input stream.
    * @param eosError True to throw an error if the end of stream is reached.
    * @returns The read bytes.
-   * @throws {string}
+   * @throws {Error}
    */
   public readBytesTerm(terminator: number, include: boolean, consume: boolean, eosError: boolean): Uint8Array {
     this.alignToByte();
@@ -670,7 +670,7 @@ class KaitaiStream {
    * @param consume True if the terminator should be consumed from the input stream.
    * @param eosError True to throw an error if the end of stream is reached.
    * @returns The read bytes.
-   * @throws {string}
+   * @throws {Error}
    */
   public readBytesTermMulti(terminator: Uint8Array, include: boolean, consume: boolean, eosError: boolean): Uint8Array {
     this.alignToByte();
@@ -851,7 +851,7 @@ class KaitaiStream {
    * @param amount The shift amount in bits.
    * @param groupSize The number of bytes in each group.
    * @returns The rotated bytes.
-   * @throws {string}
+   * @throws {RangeError}
    */
   public static processRotateLeft(data: Uint8Array, amount: number, groupSize: number): Uint8Array {
     if (groupSize !== 1)
@@ -904,7 +904,7 @@ class KaitaiStream {
    * @param a The dividend.
    * @param b The divisor.
    * @returns The result of `a` mod `b`.
-   * @throws {string}
+   * @throws {RangeError}
    */
   public static mod(a: number, b: number): number {
     if (b <= 0)
