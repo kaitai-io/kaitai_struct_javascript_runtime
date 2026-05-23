@@ -820,8 +820,8 @@ class KaitaiStream {
    * @returns The Xor'd bytes.
    */
   public static processXorOne(data: Uint8Array, key: number): Uint8Array {
-    const r = new Uint8Array(data.length);
     const dl = data.length;
+    const r = new Uint8Array(dl);
     for (let i = 0; i < dl; i++)
       r[i] = data[i] ^ key;
     return r;
