@@ -1040,8 +1040,6 @@ namespace KaitaiStream {
      */
     public constructor(bytesReq: number, bytesAvail: number) {
       super("requested " + bytesReq + " bytes, but only " + bytesAvail + " bytes available");
-      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
-      Object.setPrototypeOf(this, KaitaiStream.EOFError.prototype);
       this.bytesReq = bytesReq;
       this.bytesAvail = bytesAvail;
     }
@@ -1061,8 +1059,6 @@ namespace KaitaiStream {
      */
     public constructor(expected: any, actual: any) {
       super("expected [" + expected + "], but got [" + actual + "]");
-      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
-      Object.setPrototypeOf(this, KaitaiStream.UnexpectedDataError.prototype);
       this.expected = expected;
       this.actual = actual;
     }
@@ -1073,8 +1069,6 @@ namespace KaitaiStream {
 
     public constructor() {
       super();
-      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
-      Object.setPrototypeOf(this, KaitaiStream.UndecidedEndiannessError.prototype);
     }
   };
 
@@ -1089,8 +1083,6 @@ namespace KaitaiStream {
      */
     public constructor(expected: any, actual: any) {
       super("not equal, expected [" + expected + "], but got [" + actual + "]");
-      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
-      Object.setPrototypeOf(this, KaitaiStream.ValidationNotEqualError.prototype);
       this.expected = expected;
       this.actual = actual;
     }
@@ -1107,8 +1099,6 @@ namespace KaitaiStream {
      */
     public constructor(min: any, actual: any) {
       super("not in range, min [" + min + "], but got [" + actual + "]");
-      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
-      Object.setPrototypeOf(this, KaitaiStream.ValidationLessThanError.prototype);
       this.min = min;
       this.actual = actual;
     }
@@ -1125,8 +1115,6 @@ namespace KaitaiStream {
      */
     public constructor(max: any, actual: any) {
       super("not in range, max [" + max + "], but got [" + actual + "]");
-      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
-      Object.setPrototypeOf(this, KaitaiStream.ValidationGreaterThanError.prototype);
       this.max = max;
       this.actual = actual;
     }
@@ -1141,8 +1129,6 @@ namespace KaitaiStream {
      */
     public constructor(actual: any) {
       super("not any of the list, got [" + actual + "]");
-      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
-      Object.setPrototypeOf(this, KaitaiStream.ValidationNotAnyOfError.prototype);
       this.actual = actual;
     }
   };
@@ -1156,8 +1142,6 @@ namespace KaitaiStream {
      */
     public constructor(actual: any) {
       super("not in the enum, got [" + actual + "]");
-      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
-      Object.setPrototypeOf(this, KaitaiStream.ValidationNotInEnumError.prototype);
       this.actual = actual;
     }
   };
@@ -1171,8 +1155,6 @@ namespace KaitaiStream {
      */
     public constructor(actual: any) {
       super("not matching the expression, got [" + actual + "]");
-      // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
-      Object.setPrototypeOf(this, KaitaiStream.ValidationExprError.prototype);
       this.actual = actual;
     }
   };
