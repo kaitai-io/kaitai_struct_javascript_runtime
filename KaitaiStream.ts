@@ -175,9 +175,13 @@ class KaitaiStream {
    *
    * @param pos Position to seek to.
    */
-  public seek(pos: number): void {
+  public seek(pos: number | bigint): void {
     this.alignToByte();
-    const npos = Math.max(0, Math.min(this.size, pos));
+    // `posAsNumber` can potentially be an unsafe integer (if the `pos: bigint`
+    // parameter is greater than `Number.MAX_SAFE_INTEGER`), but that doesn't
+    // matter because it will be clamped to a valid range.
+    const posAsNumber: number = typeof pos === 'bigint' ? Number(pos) : pos;
+    const npos = Math.max(0, Math.min(this.size, posAsNumber));
     this.pos = (isNaN(npos) || !isFinite(npos)) ? 0 : npos;
   }
 
@@ -242,12 +246,21 @@ class KaitaiStream {
   }
 
   /**
-   * Reads a 64-bit big-endian unsigned int from the stream. Note that
-   * JavaScript does not support 64-bit integers natively, so it will
-   * automatically upgrade internal representation to use IEEE 754
-   * double precision float.
+   * Reads a 64-bit big-endian signed int from the stream and returns it as
+   * a {@link Number}.
    *
-   * @returns The read number.
+   * Note that the {@link Number} type in JavaScript cannot accurately represent
+   * 64-bit integers, as it is an IEEE 754 double-precision floating-point
+   * number, which has a precision of only 53 bits. Therefore, integers greater
+   * than {@link Number.MAX_SAFE_INTEGER} (`2**53 - 1` or
+   * `0x001f_ffff_ffff_ffff`) or less than {@link Number.MIN_SAFE_INTEGER}
+   * (`-2**53 + 1` or `-0x001f_ffff_ffff_ffff`) will be rounded, with a maximum
+   * rounding error of +- 512 for values above `2**62` or below `-2**62`. If
+   * this loss of precision is unacceptable, use {@link readS8beAsBigInt}
+   * instead.
+   *
+   * @returns The 64-bit signed integer read from the stream, potentially rounded.
+   * @see {@link readS8beAsBigInt}
    */
   public readS8be(): number {
     this.alignToByte();
@@ -261,6 +274,24 @@ class KaitaiStream {
     } else {
       return 0x100000000 * v1 + v2;
     }
+  }
+
+  /**
+   * Reads a 64-bit big-endian signed int from the stream and returns it as
+   * a {@link BigInt}.
+   *
+   * Unlike {@link readS8be}, this method returns the exact value without any
+   * loss of precision. This is made possible by the {@link BigInt} type.
+   *
+   * @returns The exact 64-bit signed integer read from the stream.
+   * @see {@link readS8be}
+   */
+  public readS8beAsBigInt(): bigint {
+    this.alignToByte();
+    this.ensureBytesLeft(8);
+    const v = this._dataView.getBigInt64(this.pos);
+    this.pos += 8;
+    return v;
   }
 
   // ........................................................................
@@ -294,12 +325,21 @@ class KaitaiStream {
   }
 
   /**
-   * Reads a 64-bit little-endian unsigned int from the stream. Note that
-   * JavaScript does not support 64-bit integers natively, so it will
-   * automatically upgrade internal representation to use IEEE 754
-   * double precision float.
+   * Reads a 64-bit little-endian signed int from the stream and returns it as
+   * a {@link Number}.
    *
-   * @returns The read number.
+   * Note that the {@link Number} type in JavaScript cannot accurately represent
+   * 64-bit integers, as it is an IEEE 754 double-precision floating-point
+   * number, which has a precision of only 53 bits. Therefore, integers greater
+   * than {@link Number.MAX_SAFE_INTEGER} (`2**53 - 1` or
+   * `0x001f_ffff_ffff_ffff`) or less than {@link Number.MIN_SAFE_INTEGER}
+   * (`-2**53 + 1` or `-0x001f_ffff_ffff_ffff`) will be rounded, with a maximum
+   * rounding error of +- 512 for values above `2**62` or below `-2**62`. If
+   * this loss of precision is unacceptable, use {@link readS8leAsBigInt}
+   * instead.
+   *
+   * @returns The 64-bit signed integer read from the stream, potentially rounded.
+   * @see {@link readS8leAsBigInt}
    */
   public readS8le(): number {
     this.alignToByte();
@@ -313,6 +353,24 @@ class KaitaiStream {
     } else {
       return 0x100000000 * v2 + v1;
     }
+  }
+
+  /**
+   * Reads a 64-bit little-endian signed int from the stream and returns it as
+   * a {@link BigInt}.
+   *
+   * Unlike {@link readS8le}, this method returns the exact value without any
+   * loss of precision. This is made possible by the {@link BigInt} type.
+   *
+   * @returns The exact 64-bit signed integer read from the stream.
+   * @see {@link readS8le}
+   */
+  public readS8leAsBigInt(): bigint {
+    this.alignToByte();
+    this.ensureBytesLeft(8);
+    const v = this._dataView.getBigInt64(this.pos, true);
+    this.pos += 8;
+    return v;
   }
 
   // ------------------------------------------------------------------------
@@ -363,12 +421,19 @@ class KaitaiStream {
   }
 
   /**
-   * Reads a 64-bit big-endian unsigned int from the stream. Note that
-   * JavaScript does not support 64-bit integers natively, so it will
-   * automatically upgrade internal representation to use IEEE 754
-   * double precision float.
+   * Reads a 64-bit big-endian unsigned int from the stream and returns it as
+   * a {@link Number}.
    *
-   * @returns The read number.
+   * Note that the {@link Number} type in JavaScript cannot accurately represent
+   * 64-bit integers, as it is an IEEE 754 double-precision floating-point
+   * number, which has a precision of only 53 bits. Therefore, integers greater
+   * than {@link Number.MAX_SAFE_INTEGER} (`2**53 - 1` or
+   * `0x001f_ffff_ffff_ffff`) will be rounded, with a maximum rounding error of
+   * +- 1024 for values above `2**63`. If this loss of precision is
+   * unacceptable, use {@link readU8beAsBigInt} instead.
+   *
+   * @returns The 64-bit unsigned integer read from the stream, potentially rounded.
+   * @see {@link readU8beAsBigInt}
    */
   public readU8be(): number {
     this.alignToByte();
@@ -376,6 +441,24 @@ class KaitaiStream {
     const v1 = this.readU4be();
     const v2 = this.readU4be();
     return 0x100000000 * v1 + v2;
+  }
+
+  /**
+   * Reads a 64-bit big-endian unsigned int from the stream and returns it as
+   * a {@link BigInt}.
+   *
+   * Unlike {@link readU8be}, this method returns the exact value without any
+   * loss of precision. This is made possible by the {@link BigInt} type.
+   *
+   * @returns The exact 64-bit unsigned integer read from the stream.
+   * @see {@link readU8be}
+   */
+  public readU8beAsBigInt(): bigint {
+    this.alignToByte();
+    this.ensureBytesLeft(8);
+    const v = this._dataView.getBigUint64(this.pos);
+    this.pos += 8;
+    return v;
   }
 
   // ........................................................................
@@ -409,12 +492,19 @@ class KaitaiStream {
   }
 
   /**
-   * Reads a 64-bit little-endian unsigned int from the stream. Note that
-   * JavaScript does not support 64-bit integers natively, so it will
-   * automatically upgrade internal representation to use IEEE 754
-   * double precision float.
+   * Reads a 64-bit little-endian unsigned int from the stream and returns it as
+   * a {@link Number}.
    *
-   * @returns The read number.
+   * Note that the {@link Number} type in JavaScript cannot accurately represent
+   * 64-bit integers, as it is an IEEE 754 double-precision floating-point
+   * number, which has a precision of only 53 bits. Therefore, integers greater
+   * than {@link Number.MAX_SAFE_INTEGER} (`2**53 - 1` or
+   * `0x001f_ffff_ffff_ffff`) will be rounded, with a maximum rounding error of
+   * +- 1024 for values above `2**63`. If this loss of precision is
+   * unacceptable, use {@link readU8leAsBigInt} instead.
+   *
+   * @returns The 64-bit unsigned integer read from the stream, potentially rounded.
+   * @see {@link readU8leAsBigInt}
    */
   public readU8le(): number {
     this.alignToByte();
@@ -422,6 +512,24 @@ class KaitaiStream {
     const v1 = this.readU4le();
     const v2 = this.readU4le();
     return 0x100000000 * v2 + v1;
+  }
+
+  /**
+   * Reads a 64-bit little-endian unsigned int from the stream and returns it as
+   * a {@link BigInt}.
+   *
+   * Unlike {@link readU8le}, this method returns the exact value without any
+   * loss of precision. This is made possible by the {@link BigInt} type.
+   *
+   * @returns The exact 64-bit unsigned integer read from the stream.
+   * @see {@link readU8le}
+   */
+  public readU8leAsBigInt(): bigint {
+    this.alignToByte();
+    this.ensureBytesLeft(8);
+    const v = this._dataView.getBigUint64(this.pos, true);
+    this.pos += 8;
+    return v;
   }
 
   // ========================================================================
@@ -542,6 +650,39 @@ class KaitaiStream {
   }
 
   /**
+   * @param n The number of bits to read.
+   * @returns The read bits as a {@link BigInt}.
+   */
+  public readBitsIntBeAsBigInt(n: number): bigint {
+    let res = BigInt(0);
+
+    const bitsNeeded = n - this.bitsLeft;
+    this.bitsLeft = -bitsNeeded & 7; // `-bitsNeeded mod 8`
+
+    if (bitsNeeded > 0) {
+      // 1 bit  => 1 byte
+      // 8 bits => 1 byte
+      // 9 bits => 2 bytes
+      const bytesNeeded = ((bitsNeeded - 1) >> 3) + 1; // `ceil(bitsNeeded / 8)` (NB: `x >> 3` is `floor(x / 8)`)
+      const buf = this.mapUint8Array(bytesNeeded);
+      for (let i = 0; i < bytesNeeded; i++) {
+        res = res << BigInt(8) | BigInt(buf[i]);
+      }
+
+      const newBits = Number(res & BigInt(0x7f));
+      res = res >> BigInt(this.bitsLeft) | BigInt(this.bits) << BigInt(bitsNeeded);
+      this.bits = newBits; // will be masked at the end of the function
+    } else {
+      res = BigInt(this.bits >>> -bitsNeeded); // shift unneeded bits out
+    }
+
+    const mask = (1 << this.bitsLeft) - 1; // `bitsLeft` is in range 0..7
+    this.bits &= mask;
+
+    return res;
+  }
+
+  /**
    * Unused since Kaitai Struct Compiler v0.9+ - compatibility with older versions.
    *
    * @deprecated Use {@link readBitsIntBe} instead.
@@ -571,8 +712,8 @@ class KaitaiStream {
       // 9 bits => 2 bytes
       const bytesNeeded = ((bitsNeeded - 1) >> 3) + 1; // `ceil(bitsNeeded / 8)` (NB: `x >> 3` is `floor(x / 8)`)
       const buf = this.mapUint8Array(bytesNeeded);
-      for (let i = 0; i < bytesNeeded; i++) {
-        res |= buf[i] << (i * 8);
+      for (let i = bytesNeeded - 1; i >= 0; i--) {
+        res = res << 8 | buf[i];
       }
 
       // NB: in JavaScript, bit shift operators always shift by modulo 32 of the right-hand operand (see
@@ -599,6 +740,37 @@ class KaitaiStream {
   }
 
   /**
+   * @param n The number of bits to read.
+   * @returns The read bits as a {@link BigInt}.
+   * @throws {RangeError}
+   */
+  public readBitsIntLeAsBigInt(n: number): bigint {
+    let res = BigInt(0);
+    const bitsNeeded = n - this.bitsLeft;
+
+    if (bitsNeeded > 0) {
+      // 1 bit  => 1 byte
+      // 8 bits => 1 byte
+      // 9 bits => 2 bytes
+      const bytesNeeded = ((bitsNeeded - 1) >> 3) + 1; // `ceil(bitsNeeded / 8)` (NB: `x >> 3` is `floor(x / 8)`)
+      const buf = this.mapUint8Array(bytesNeeded);
+      for (let i = bytesNeeded - 1; i >= 0; i--) {
+        res = res << BigInt(8) | BigInt(buf[i]);
+      }
+
+      const newBits = res >> BigInt(bitsNeeded);
+      res = (res << BigInt(this.bitsLeft)) | BigInt(this.bits);
+      this.bits = Number(newBits); // `newBits` is at most 7 bits wide => safe to convert
+    } else {
+      res = BigInt(this.bits);
+      this.bits >>>= n;
+    }
+
+    this.bitsLeft = -bitsNeeded & 7; // `-bitsNeeded mod 8`
+    return BigInt.asUintN(n, res);
+  }
+
+  /**
    * Native endianness. Either KaitaiStream.BIG_ENDIAN or KaitaiStream.LITTLE_ENDIAN
    * depending on the platform endianness.
    */
@@ -612,9 +784,28 @@ class KaitaiStream {
    * @param len The number of bytes to read.
    * @returns The read bytes.
    */
-  public readBytes(len: number): Uint8Array {
+  public readBytes(len: number | bigint): Uint8Array {
     this.alignToByte();
-    return this.mapUint8Array(len);
+    if (len < 0) {
+      throw new RangeError("negative length " + len + " given");
+    }
+    let lenAsNumberInt: number;
+    if (typeof len === 'bigint') {
+      // Calling `ensureBytesLeft()` already here allows us to preserve the
+      // original `bigint` value in the `EOFError` object. `mapUint8Array()`
+      // also calls `ensureBytesLeft()`, but it requires a `number`.
+      this.ensureBytesLeft(len);
+      // `len > Number.MAX_SAFE_INTEGER` is practically impossible. For this to
+      // happen, the stream would have to be backed by an `ArrayBuffer` with a
+      // length that exceeds `Number.MAX_SAFE_INTEGER` (i.e. `>= 2**53`), the
+      // creation of which must be rejected with a `RangeError` according to the
+      // ECMAScript specification, see
+      // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/ArrayBuffer/ArrayBuffer#exceptions
+      lenAsNumberInt = Number(len);
+    } else {
+      lenAsNumberInt = Math.floor(len);
+    }
+    return this.mapUint8Array(lenAsNumberInt);
   }
 
   /**
@@ -819,11 +1010,12 @@ class KaitaiStream {
    * @param key The key byte.
    * @returns The Xor'd bytes.
    */
-  public static processXorOne(data: Uint8Array, key: number): Uint8Array {
+  public static processXorOne(data: Uint8Array, key: number | bigint): Uint8Array {
+    const keyAsNumber: number = typeof key === 'bigint' ? Number(BigInt.asUintN(8, key)) : key;
     const dl = data.length;
     const r = new Uint8Array(dl);
     for (let i = 0; i < dl; i++)
-      r[i] = data[i] ^ key;
+      r[i] = data[i] ^ keyAsNumber;
     return r;
   }
 
@@ -853,17 +1045,19 @@ class KaitaiStream {
    * @returns The rotated bytes.
    * @throws {RangeError}
    */
-  public static processRotateLeft(data: Uint8Array, amount: number, groupSize: number): Uint8Array {
+  public static processRotateLeft(data: Uint8Array, amount: number | bigint, groupSize: number): Uint8Array {
     if (groupSize !== 1)
       throw new RangeError("unable to rotate group of " + groupSize + " bytes yet");
 
+    const amountAsNumber: number = typeof amount === 'bigint' ? Number(BigInt.asUintN(3, amount)) : amount;
+
     const mask = groupSize * 8 - 1;
-    const antiAmount = -amount & mask;
+    const antiAmount = -amountAsNumber & mask;
 
     const dl = data.length;
     const r = new Uint8Array(dl);
     for (let i = 0; i < dl; i++)
-      r[i] = (data[i] << amount) & 0xff | (data[i] >> antiAmount);
+      r[i] = (data[i] << amountAsNumber) & 0xff | (data[i] >> antiAmount);
 
     return r;
   }
@@ -906,12 +1100,30 @@ class KaitaiStream {
    * @returns The result of `a` mod `b`.
    * @throws {RangeError}
    */
-  public static mod(a: number, b: number): number {
+  public static mod(a: number, b: number): number;
+  /**
+   * @param a The dividend.
+   * @param b The divisor.
+   * @returns The result of `a` mod `b`.
+   * @throws {RangeError}
+   */
+  public static mod(a: bigint, b: bigint): bigint;
+  /**
+   * @param a The dividend.
+   * @param b The divisor.
+   * @returns The result of `a` mod `b`.
+   * @throws {RangeError}
+   */
+  public static mod(a: number | bigint, b: number | bigint): number | bigint {
+    // The `as number` casts in this method are a bit ugly, but I don't think
+    // there is a good way to tell TypeScript that we only accept either
+    // `(a, b): (number, number)` or `(a, b): (bigint, bigint)`, not
+    // `(a, b): (number, bigint)` or `(a, b): (bigint, number)`.
     if (b <= 0)
       throw new RangeError("mod divisor <= 0");
-    let r = a % b;
+    let r = (a as number) % (b as number);
     if (r < 0)
-      r += b;
+      r += b as number;
     return r;
   }
 
@@ -921,7 +1133,21 @@ class KaitaiStream {
    * @param arr The input array.
    * @returns The smallest value.
    */
-  public static arrayMin(arr: ArrayLike<number>): number {
+  public static arrayMin(arr: ArrayLike<number>): number;
+  /**
+   * Gets the smallest value in an array.
+   *
+   * @param arr The input array.
+   * @returns The smallest value.
+   */
+  public static arrayMin(arr: ArrayLike<bigint>): bigint;
+  /**
+   * Gets the smallest value in an array.
+   *
+   * @param arr The input array.
+   * @returns The smallest value.
+   */
+  public static arrayMin(arr: ArrayLike<number> | ArrayLike<bigint>): number | bigint {
     let min = arr[0];
     const n = arr.length;
     for (let i = 1; i < n; i++) {
@@ -937,7 +1163,21 @@ class KaitaiStream {
    * @param arr The input array.
    * @returns The largest value.
    */
-  public static arrayMax(arr: ArrayLike<number>): number {
+  public static arrayMax(arr: ArrayLike<number>): number;
+  /**
+   * Gets the largest value in an array.
+   *
+   * @param arr The input array.
+   * @returns The largest value.
+   */
+  public static arrayMax(arr: ArrayLike<bigint>): bigint;
+  /**
+   * Gets the largest value in an array.
+   *
+   * @param arr The input array.
+   * @returns The largest value.
+   */
+  public static arrayMax(arr: ArrayLike<number> | ArrayLike<bigint>): number | bigint {
     let max = arr[0];
     const n = arr.length;
     for (let i = 1; i < n; i++) {
@@ -985,9 +1225,10 @@ class KaitaiStream {
    * @param length Number of bytes to require.
    * @throws {KaitaiStream.EOFError}
    */
-  protected ensureBytesLeft(length: number): void {
-    if (this.pos + length > this.size) {
-      throw new KaitaiStream.EOFError(length, this.size - this.pos);
+  protected ensureBytesLeft(length: number | bigint): void {
+    const numBytesAvailable = this.size - this.pos;
+    if (length > numBytesAvailable) {
+      throw new KaitaiStream.EOFError(length, numBytesAvailable);
     }
   }
 
@@ -999,8 +1240,6 @@ class KaitaiStream {
    * @returns A Uint8Array to the KaitaiStream backing buffer.
    */
   protected mapUint8Array(length: number): Uint8Array {
-    length |= 0;
-
     this.ensureBytesLeft(length);
 
     const arr = new Uint8Array(this._buffer, this.byteOffset + this.pos, length);
@@ -1031,14 +1270,14 @@ class KaitaiStream {
 namespace KaitaiStream {
   export class EOFError extends Error {
     public name = "EOFError";
-    public bytesReq: number;
+    public bytesReq: number | bigint;
     public bytesAvail: number;
 
     /**
      * @param bytesReq The number of bytes requested.
      * @param bytesAvail The number of bytes available.
      */
-    public constructor(bytesReq: number, bytesAvail: number) {
+    public constructor(bytesReq: number | bigint, bytesAvail: number) {
       super("requested " + bytesReq + " bytes, but only " + bytesAvail + " bytes available");
       // Workaround https://www.typescriptlang.org/docs/handbook/2/classes.html#inheriting-built-in-types
       Object.setPrototypeOf(this, KaitaiStream.EOFError.prototype);
