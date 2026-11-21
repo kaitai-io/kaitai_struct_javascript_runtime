@@ -1095,6 +1095,26 @@ class KaitaiStream {
   // ========================================================================
 
   /**
+   * Performs floored division, i.e. the quotient is rounded toward negative
+   * infinity (unlike the `/` operator for `bigint`, which rounds toward zero).
+   *
+   * @param a The dividend.
+   * @param b The divisor.
+   * @returns The result of `a` divided by `b`, rounded down.
+   * @throws {RangeError} If the divisor is zero.
+   */
+  public static divBigInt(a: bigint, b: bigint): bigint {
+    const q = a / b;
+    const r = a % b;
+    // `/` rounds toward zero, e.g. `-7n / 2n` is `-3n` (with `r` = `-1n`), so
+    // correct the result if the remainder is nonzero and its sign differs
+    // from the sign of `b`
+    if (r !== BigInt(0) && (r < 0) !== (b < 0))
+      return q - BigInt(1);
+    return q;
+  }
+
+  /**
    * @param a The dividend.
    * @param b The divisor.
    * @returns The result of `a` mod `b`.
