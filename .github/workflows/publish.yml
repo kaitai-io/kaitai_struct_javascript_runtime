@@ -5,6 +5,7 @@ on:
     tags:
       - 'v0.[0-9]+.[0-9]+-SNAPSHOT.[0-9]+'
       - 'v0.[0-9]+.[0-9]+'
+      - 'v2.[0-9]+.[0-9]+-alpha.[0-9]+'
 
 permissions: {}
 
@@ -69,6 +70,8 @@ jobs:
             DIST_TAG=next
           elif [[ "$GIT_TAG" == v0.+([0-9]).+([0-9]) ]]; then
             DIST_TAG=latest
+          elif [[ "$GIT_TAG" == v2.+([0-9]).+([0-9])-alpha.+([0-9]) ]]; then
+            DIST_TAG=alpha
           else
             echo "Error: the tag name '$GIT_TAG' does not match any of the patterns"
             exit 1
